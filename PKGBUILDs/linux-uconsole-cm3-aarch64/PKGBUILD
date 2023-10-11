@@ -62,6 +62,7 @@ then
   _MAKE_CROSS_FLAGS=(
     "CROSS_COMPILE=aarch64-linux-gnu-"
     "ARCH=arm64"
+    "-j$(nproc)"
   )
   _STRIP="aarch64-linux-gnu-strip"
   # add extra deps
@@ -72,12 +73,12 @@ else
 fi
 
 _make1() {
-  make ${MAKEFLAGS} -j$(nproc) "${_MAKE_CROSS_FLAGS[@]}" "$@"
+  make ${MAKEFLAGS} "${_MAKE_CROSS_FLAGS[@]}" "$@"
 }
 
 _make() {
   test -s version
-  make ${MAKEFLAGS} -j$(nproc) "${_MAKE_CROSS_FLAGS[@]}" KERNELRELEASE="$(<version)" "$@"
+  make ${MAKEFLAGS} "${_MAKE_CROSS_FLAGS[@]}" KERNELRELEASE="$(<version)" "$@"
 }
 
 _strip() {
@@ -177,7 +178,9 @@ _package() {
 
 _package-headers() {
   pkgdesc="Header files and scripts for building modules for linux kernel - ${_desc}"
-  provides=("linux-headers=${pkgver}")
+  provides=(
+    # "linux-headers=${pkgver}"
+  )
   conflicts=('linux-headers')
 
   cd $_srcname
