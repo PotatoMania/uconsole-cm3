@@ -1,0 +1,315 @@
+From 0db1a9ce616c8c9ee2361b35d2835d779791059b Mon Sep 17 00:00:00 2001
+From: Potato <nikko@faint.day>
+Date: Wed, 11 Oct 2023 11:56:17 +0800
+Subject: [PATCH] arm: arm64: boot: dts: broadcom: add uconsole-cm3
+
+---
+ arch/arm/boot/dts/broadcom/Makefile           |   2 +
+ .../dts/broadcom/bcm2837-rpi-cm3-uconsole.dts | 252 ++++++++++++++++++
+ arch/arm64/boot/dts/broadcom/Makefile         |   1 +
+ .../dts/broadcom/bcm2837-rpi-cm3-uconsole.dts |   2 +
+ 4 files changed, 257 insertions(+)
+ create mode 100644 arch/arm/boot/dts/broadcom/bcm2837-rpi-cm3-uconsole.dts
+ create mode 100644 arch/arm64/boot/dts/broadcom/bcm2837-rpi-cm3-uconsole.dts
+
+diff --git a/arch/arm/boot/dts/broadcom/Makefile b/arch/arm/boot/dts/broadcom/Makefile
+index 95b0ef2a4215..a0deceaa6330 100644
+--- a/arch/arm/boot/dts/broadcom/Makefile
++++ b/arch/arm/boot/dts/broadcom/Makefile
+@@ -11,6 +11,7 @@ DTC_FLAGS_bcm2837-rpi-3-a-plus := -@
+ DTC_FLAGS_bcm2837-rpi-3-b := -@
+ DTC_FLAGS_bcm2837-rpi-3-b-plus := -@
+ DTC_FLAGS_bcm2837-rpi-cm3-io3 := -@
++DTC_FLAGS_bcm2837-rpi-cm3-uconsole := -@
+ DTC_FLAGS_bcm2837-rpi-zero-2-w := -@
+ DTC_FLAGS_bcm2711-rpi-400 := -@
+ DTC_FLAGS_bcm2711-rpi-4-b := -@
+@@ -29,6 +30,7 @@ dtb-$(CONFIG_ARCH_BCM2835) += \
+ 	bcm2837-rpi-3-b.dtb \
+ 	bcm2837-rpi-3-b-plus.dtb \
+ 	bcm2837-rpi-cm3-io3.dtb \
++	bcm2837-rpi-cm3-uconsole.dtb \
+ 	bcm2837-rpi-zero-2-w.dtb \
+ 	bcm2711-rpi-400.dtb \
+ 	bcm2711-rpi-4-b.dtb \
+diff --git a/arch/arm/boot/dts/broadcom/bcm2837-rpi-cm3-uconsole.dts b/arch/arm/boot/dts/broadcom/bcm2837-rpi-cm3-uconsole.dts
+new file mode 100644
+index 000000000000..8c3893e3cb7d
+--- /dev/null
++++ b/arch/arm/boot/dts/broadcom/bcm2837-rpi-cm3-uconsole.dts
+@@ -0,0 +1,252 @@
++// SPDX-License-Identifier: GPL-2.0
++/dts-v1/;
++#include "bcm2837-rpi-cm3.dtsi"
++#include "bcm283x-rpi-usb-host.dtsi"
++
++/ {
++	compatible = "clockwork,uconsole-cm3", "raspberrypi,3-compute-module", "brcm,bcm2837";
++	model = "ClockworkPi uConsole V3.14 with RPi CM3";
++
++	chosen {
++		/* 8250 auxiliary UART instead of pl011 */
++		stdout-path = "serial1:115200n8";
++	};
++
++	/* Speaker amplifier */
++	audio_amplifier: audio-amplifier {
++		compatible = "simple-audio-amplifier";
++		enable-gpios = <&gpio 11 GPIO_ACTIVE_HIGH>; /* GPIO11 */
++		sound-name-prefix = "Amplifier";
++		VCC-supply = <&reg_vcc>;
++	};
++
++	battery: battery@0 {
++		compatible = "simple-battery";
++		constant_charge_current_max_microamp = <2100000>;
++		voltage-min-design-microvolt = <3300000>;
++		voltage-max-design-microvolt = <4200000>;
++	};
++
++	ocp8178_backlight: backlight@0 {
++		compatible = "ocp8178-backlight";
++		backlight-control-gpios = <&gpio 9 GPIO_ACTIVE_HIGH>;
++		default-brightness = <5>;
++	};
++
++	reg_vcc: fixed-regulator-vcc {
++		compatible = "regulator-fixed";
++		regulator-name = "VCC";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		regulator-always-on;
++	};
++
++	wifi_pwrseq: wifi-pwrseq {
++		compatible = "mmc-pwrseq-simple";
++		reset-gpios = <&gpio 3 GPIO_ACTIVE_HIGH>;
++	};
++};
++
++&dsi1 {
++	status = "okay";
++
++	panel_cwu50: panel@0 {
++		compatible = "clockwork,cwu50";
++		reg = <0>;
++		reset-gpio = <&gpio 8 GPIO_ACTIVE_LOW>;
++		backlight = <&ocp8178_backlight>;
++		rotation = <90>;
++	};
++};
++
++&gpio {
++	bt_pins: bt-pins {
++		brcm,pins = <5 6 7>;
++		brcm,function = <BCM2835_FSEL_GPIO_OUT
++						BCM2835_FSEL_GPIO_IN
++						BCM2835_FSEL_GPIO_OUT>;
++		brcm,pull = <BCM2835_PUD_OFF
++					BCM2835_PUD_UP
++					BCM2835_PUD_OFF>;
++	};
++};
++
++&hdmi {
++	hpd-gpios = <&expgpio 1 GPIO_ACTIVE_LOW>;
++	power-domains = <&power RPI_POWER_DOMAIN_HDMI>;
++	status = "okay";
++};
++
++&i2c0 {
++	pinctrl-0 = <&i2c0_gpio0>;
++	pinctrl-names = "default";
++	status = "okay";
++
++	axp228: pmic@34 {
++		compatible = "x-powers,axp228", "x-powers,axp221";
++		reg = <0x34>;
++		interrupt-parent = <&gpio>;
++		interrupts = <2 IRQ_TYPE_LEVEL_LOW>; /* GPIO2, in some code IRQ_TYPE_EDGE_FALLING */
++		interrupt-controller;
++		#interrupt-cells = <1>;
++
++		ac_power_supply: ac-power {
++			compatible = "x-powers,axp221-ac-power-supply";
++		};
++
++		axp_adc: adc {
++			compatible = "x-powers,axp221-adc";
++			#io-channel-cells = <1>;
++		};
++
++		battery_power_supply: battery-power {
++			compatible = "x-powers,axp221-battery-power-supply";
++		};
++
++		axp_gpio: gpio {
++			compatible = "x-powers,axp221-gpio";
++			gpio-controller;
++			#gpio-cells = <2>;
++		};
++
++		regulators {
++			x-powers,dcdc-freq = <3000>;
++
++			reg_dcdc1: dcdc1 {
++				regulator-name = "sys-3v3";
++				regulator-always-on;
++				regulator-min-microvolt = <3300000>;
++				regulator-max-microvolt = <3300000>;
++			};
++
++			reg_dcdc3: dcdc3 {
++				regulator-name = "sys-1v8";
++				regulator-always-on;
++				regulator-min-microvolt = <1800000>;
++				regulator-max-microvolt = <1800000>;
++			};
++
++			reg_aldo1: aldo1 {
++				regulator-name = "aud-3v3";
++				regulator-min-microvolt = <3300000>;
++				regulator-max-microvolt = <3300000>;
++			};
++
++			reg_aldo2: aldo2 {
++				regulator-name = "disp-3v3";
++				regulator-always-on;
++				regulator-min-microvolt = <3300000>;
++				regulator-max-microvolt = <3300000>;
++			};
++
++			reg_aldo3: aldo3 {
++				regulator-name = "vdd-wifi";
++				regulator-min-microvolt = <1800000>;
++				regulator-max-microvolt = <1800000>;
++			};
++
++			/* DLDO1 and ELDO1-3 are connected in parallel. */
++			reg_dldo1: dldo1 {
++				regulator-name = "vbat-wifi-a";
++				regulator-always-on;
++				regulator-min-microvolt = <3300000>;
++				regulator-max-microvolt = <3300000>;
++			};
++
++			/* DLDO2-DLDO4 are connected in parallel. */
++			reg_dldo2: dldo2 {
++				regulator-name = "vcc-3v3-ext-a";
++				regulator-always-on;
++				regulator-min-microvolt = <3300000>;
++				regulator-max-microvolt = <3300000>;
++			};
++
++			reg_dldo3: dldo3 {
++				regulator-name = "vcc-3v3-ext-b";
++				regulator-always-on;
++				regulator-min-microvolt = <3300000>;
++				regulator-max-microvolt = <3300000>;
++			};
++
++			reg_dldo4: dldo4 {
++				regulator-name = "vcc-3v3-ext-c";
++				regulator-always-on;
++				regulator-min-microvolt = <3300000>;
++				regulator-max-microvolt = <3300000>;
++			};
++
++			reg_eldo1: eldo1 {
++				regulator-name = "vbat-wifi-b";
++				regulator-always-on;
++				regulator-min-microvolt = <3300000>;
++				regulator-max-microvolt = <3300000>;
++			};
++
++			reg_eldo2: eldo2 {
++				regulator-name = "vbat-wifi-c";
++				regulator-always-on;
++				regulator-min-microvolt = <3300000>;
++				regulator-max-microvolt = <3300000>;
++			};
++
++			reg_eldo3: eldo3 {
++				regulator-name = "vbat-wifi-d";
++				regulator-always-on;
++				regulator-min-microvolt = <3300000>;
++				regulator-max-microvolt = <3300000>;
++			};
++		};
++	};
++};
++
++// Audio comes out here :)
++&pwm {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pwm0_gpio12 &pwm1_gpio13>;
++	status = "okay";
++};
++
++&sdhci {
++	#address-cells = <1>;
++	#size-cells = <0>;
++	bus-width = <4>;
++	mmc-pwrseq = <&wifi_pwrseq>;
++	non-removable;
++	pinctrl-names = "default";
++	pinctrl-0 = <&emmc_gpio22>;
++	status = "okay";
++	// vmmc-supply = <&reg_dldo1>;
++	// vqmmc-supply = <&reg_aldo3>;
++
++	ap6256: wifi@1 {
++		reg = <1>;
++		compatible = "brcm,bcm43456-fmac", "brcm,bcm4329-fmac";
++		interrupt-parent = <&gpio>;
++		interrupts = <4 IRQ_TYPE_LEVEL_LOW>; /* GPIO4 */
++		interrupt-names = "host-wake";
++	};
++};
++
++&uart0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart0_gpio14 &uart0_ctsrts_gpio16 &bt_pins>;
++	status = "okay";
++
++	uart-has-rtscts;
++
++	bt: bluetooth {
++		compatible = "brcm,bcm4345c5";
++		interrupt-parent = <&gpio>;
++		interrupts = <6 IRQ_TYPE_LEVEL_HIGH>; /* GPIO6 */
++		interrupt-names = "host-wake";
++		device-wakeup-gpios = <&gpio 7 GPIO_ACTIVE_HIGH>; /* GPIO7 */
++		shutdown-gpios = <&gpio 5 GPIO_ACTIVE_HIGH>; /* GPIO5 */
++		max-speed = <4000000>;
++		vbat-supply = <&reg_dldo1>;
++		// vddio-supply = <&reg_aldo3>;
++	};
++};
++
++&uart1 {
++	status = "okay";
++};
+diff --git a/arch/arm64/boot/dts/broadcom/Makefile b/arch/arm64/boot/dts/broadcom/Makefile
+index 8b4591ddd27c..984627ae03e6 100644
+--- a/arch/arm64/boot/dts/broadcom/Makefile
++++ b/arch/arm64/boot/dts/broadcom/Makefile
+@@ -10,6 +10,7 @@ dtb-$(CONFIG_ARCH_BCM2835) += bcm2711-rpi-400.dtb \
+ 			      bcm2837-rpi-3-b.dtb \
+ 			      bcm2837-rpi-3-b-plus.dtb \
+ 			      bcm2837-rpi-cm3-io3.dtb \
++			      bcm2837-rpi-cm3-uconsole.dtb \
+ 			      bcm2837-rpi-zero-2-w.dtb
+ 
+ subdir-y	+= bcmbca
+diff --git a/arch/arm64/boot/dts/broadcom/bcm2837-rpi-cm3-uconsole.dts b/arch/arm64/boot/dts/broadcom/bcm2837-rpi-cm3-uconsole.dts
+new file mode 100644
+index 000000000000..7425fa5847f3
+--- /dev/null
++++ b/arch/arm64/boot/dts/broadcom/bcm2837-rpi-cm3-uconsole.dts
+@@ -0,0 +1,2 @@
++// SPDX-License-Identifier: GPL-2.0
++#include "arm/broadcom/bcm2837-rpi-cm3-uconsole.dts"
+-- 
+2.42.0
+
