@@ -2,7 +2,7 @@
 
 Code and docs of uConsole with CM3 core.
 
-Here I use mainline linux rather than RPi's downstream.
+Here I use ~~mainline linux~~ RPi's downstream fork.
 
 I started from archlinuxarm's linux-aarch64. ~~It looks like RPi3's mainline support is enough mature.~~ I can reuse the infrastructure built by forks at archlinuxarm, focus on tweaking/optimizing linux.
 
@@ -11,42 +11,60 @@ I started from archlinuxarm's linux-aarch64. ~~It looks like RPi3's mainline sup
 - [x] port drivers
 - [x] write device tree
 - [x] build test
-- [ ] test on real hardware
+- [x] test on real hardware
     - [x] kernel boots on a RPi 3B
     - [x] kernel boots on uConsole with CM3
     - [x] HDMI(video) works
-    - [ ] WiFi works
+    - [x] WiFi works
     - [x] Bluetooth works
-    - [x] PMU works(partial)
-    - [ ] DSI panel works
-    - [ ] Audio works
-- [ ] trim build config
+    - [x] PMU works(mostly)
+    - [x] DSI panel works
+        - sometimes panel will stay black after boot, reboot to fix
+    - [x] Audio works
+        - [x] with 3.5mm jack detection
+- ~~[ ] trim build config~~
 - [ ] setup CI/CD?
 
-Raise issue if you have questions.
+I've successfully adapted the uConsole patches to CM3. I've even written a new kernel driver to support automatic amplifier switch, so the speaker will automatically shutdown when 3.5mm jack is used.
 
-I've tested mainline(6.2, 6.5) and downstream(6.1, 6.5) kernels. Things become complicated.
+Raise issue if you have any problems.
 
-Mainline and downstream use different device trees and downstream have them all in one place(because of merge rebase I guess) but the trees from upstream will not work with downstream!
+## How to install ArchLinux on uConsole/CM3 from scratch
 
-Mainline and downstream uses different drivers for SDHOST(for sdcard) and SDHCI(the general one, often used with SDIO chips). Mainline driver won't work on downstream. Take care of the configurations.
+Please read [the guide in doc(still draft)](doc/how-to-install-archlinux-from-scratch.md).
+
+## QAs
+
+### Do you plan to support more OSes?
+
+They are essentially the same. Only the packaging methods differ. You can build your own kernel with patches and config in `PKGBUILDs/linux-uconsole-cm3-rpi64`.
+
+### Why not create a full disk image?
+
+kinda lazy ;)
+
+_And I need time/investment for other personal projects._
+
+## Notes
 
 ### WiFi
 
-I cannot get WiFi working with mainline linux, and I don't know why. WiFi on RPi 3B won't work with mainline as well. So I assume it's a driver issue related to the sdhci interface.
+Because of the operation voltage(3.3V by default), the wireless module cannot run at its highest speed. But it should be enough.
 
-### Bluetooth
-
-Bluetooth somehow works with necessary device tree node properties. It works on both kernels. There will be some warnings though.
+__THIS IS NOT TESTED__: If you want to experiment with higher speed, you might want to change the jumpers(ZERO Ohm resistors) on the main board. Then you need to modify the device tree overlay to adjust the corresponding voltage.
 
 ### 4G/LTE modem
 
-On uConsole with CM3, the LTE modem will __ALWAYS__ be powered up on boot because the initial pulls of the pins.
+On uConsole with CM3, the official LTE modem will __ALWAYS__ be powered up on boot because the initial pulls of the pins.
 
 ### PMU/Power control
 
-With unmodified driver, power won't be cut off after powered off. Charging LED is not configured(GPIO0 on PMU). Button shutdown requires driver for AXP20X PEK enabled.
+When plugged in, the system might not able to fully shutdown itself.
+
+The charging LED is not configured yet. So it's normal that the orange LED is off when power cable plugged in.
+
+The power button is the system power button, that means you can shutdown your uConsole just by pressing the power button.
 
 ### DSI panel
 
-It's a mystery for me. I cannot get it work.
+Sometimes the screen will stay black. This is because a data transfer timeout. It rarely occurs and can be fixed with a reboot.
