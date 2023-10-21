@@ -1,0 +1,203 @@
+From 6a89ae4a9abff4f2ee1e7bcc1225d171c70efcd4 Mon Sep 17 00:00:00 2001
+From: Potato <nikko@faint.day>
+Date: Fri, 13 Oct 2023 11:08:40 +0800
+Subject: [PATCH 4/4] driver: staging: add uconsole simple amplifier switch
+
+---
+ drivers/staging/Kconfig                       |   2 +
+ drivers/staging/Makefile                      |   1 +
+ drivers/staging/uconsole/Kconfig              |  10 ++
+ drivers/staging/uconsole/Makefile             |   1 +
+ .../uconsole/simple-amplifier-switch.c        | 131 ++++++++++++++++++
+ 5 files changed, 145 insertions(+)
+ create mode 100644 drivers/staging/uconsole/Kconfig
+ create mode 100644 drivers/staging/uconsole/Makefile
+ create mode 100644 drivers/staging/uconsole/simple-amplifier-switch.c
+
+diff --git a/drivers/staging/Kconfig b/drivers/staging/Kconfig
+index 5cfabd5376cc..a5b88d33d3de 100644
+--- a/drivers/staging/Kconfig
++++ b/drivers/staging/Kconfig
+@@ -80,4 +80,6 @@ source "drivers/staging/qlge/Kconfig"
+ 
+ source "drivers/staging/vme_user/Kconfig"
+ 
++source "drivers/staging/uconsole/Kconfig"
++
+ endif # STAGING
+diff --git a/drivers/staging/Makefile b/drivers/staging/Makefile
+index f8c3aa9c2418..4c09e021e321 100644
+--- a/drivers/staging/Makefile
++++ b/drivers/staging/Makefile
+@@ -2,6 +2,7 @@
+ # Makefile for staging directory
+ 
+ obj-y				+= media/
++obj-y				+= uconsole/
+ obj-$(CONFIG_PRISM2_USB)	+= wlan-ng/
+ obj-$(CONFIG_FB_OLPC_DCON)	+= olpc_dcon/
+ obj-$(CONFIG_RTL8192U)		+= rtl8192u/
+diff --git a/drivers/staging/uconsole/Kconfig b/drivers/staging/uconsole/Kconfig
+new file mode 100644
+index 000000000000..303e2e26a0b1
+--- /dev/null
++++ b/drivers/staging/uconsole/Kconfig
+@@ -0,0 +1,10 @@
++# SPDX-License-Identifier: GPL-2.0
++config SIMPLE_AMPLIFIER_SWITCH
++    tristate "Simple amplifier switch driver"
++    depends on OF
++    depends on GPIOLIB
++    default n
++    help
++        Driver for simple gpio based switches. This can control a series of
++        gpios with another one. Used to control amplifiers with headphone
++        detect pin on uConsole.
+diff --git a/drivers/staging/uconsole/Makefile b/drivers/staging/uconsole/Makefile
+new file mode 100644
+index 000000000000..8f3239c1f36c
+--- /dev/null
++++ b/drivers/staging/uconsole/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_SIMPLE_AMPLIFIER_SWITCH)	+= simple-amplifier-switch.o
+diff --git a/drivers/staging/uconsole/simple-amplifier-switch.c b/drivers/staging/uconsole/simple-amplifier-switch.c
+new file mode 100644
+index 000000000000..2471e035c213
+--- /dev/null
++++ b/drivers/staging/uconsole/simple-amplifier-switch.c
+@@ -0,0 +1,131 @@
++// SPDX-License-Identifier: GPL-2.0
++//
++// simple gpio switch support
++// use one gpio to control gpios
++// this really should be a generic gpio switch driver, leave it here anyway.
++//
++// Copyright (C) 2023 PotatoMania <nikko@faint.day>
++//
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/of.h>
++#include <linux/gpio/consumer.h>
++// #include <linux/pinctrl/consumer.h>
++#include <linux/platform_device.h>
++#include <linux/interrupt.h>
++
++/* TODO: support regulators? */
++struct simple_amplifier_switch {
++	struct gpio_desc *sw;
++	struct gpio_descs *outputs;
++};
++
++// Components:
++// sw-gpios: 1 switch input
++// outputs-gpios: array of gpios
++
++static inline void set_outputs(struct gpio_descs *outputs, int value)
++{
++	unsigned long *values;
++	int nvalues = outputs->ndescs;
++
++	values = bitmap_alloc(nvalues, GFP_KERNEL);
++	if (!values)
++		return;
++
++	if (value)
++		bitmap_fill(values, nvalues);
++	else
++		bitmap_zero(values, nvalues);
++
++	gpiod_set_array_value_cansleep(nvalues, outputs->desc,
++							outputs->info, values);
++
++	bitmap_free(values);
++}
++
++static irqreturn_t amplifier_switch_interrupt(int irq, void *data)
++{
++	struct simple_amplifier_switch *ampsw = data;
++	int state;
++
++	state = gpiod_get_value(ampsw->sw);
++	set_outputs(ampsw->outputs, state);
++
++	return IRQ_HANDLED;
++}
++
++static int amplifier_switch_probe(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct simple_amplifier_switch *ampsw;
++	int current_state;
++	int err;
++
++	ampsw = devm_kzalloc(dev, sizeof(*ampsw), GFP_KERNEL);
++	if (!ampsw)
++		return -ENOMEM;
++
++	ampsw->sw = devm_gpiod_get(dev, "sw", GPIOD_IN);
++	if (IS_ERR(ampsw->sw)) {
++		err = PTR_ERR(ampsw->sw);
++		dev_err(dev, "Failed to get sw gpio! The input is required! (%d)\n", err);
++		return err;
++	}
++
++	ampsw->outputs = devm_gpiod_get_array(dev, "outputs", GPIOD_OUT_LOW);
++	if (IS_ERR(ampsw->outputs)) {
++		err = PTR_ERR(ampsw->outputs);
++		dev_err(dev, "Failed to get outputs gpios! (%d)\n", err);
++		return err;
++	}
++
++	// setup initial state
++	current_state = gpiod_get_value(ampsw->sw);
++	set_outputs(ampsw->outputs, current_state);
++
++	// register interrupts
++	err = devm_request_irq(dev, gpiod_to_irq(ampsw->sw), amplifier_switch_interrupt,
++						IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING, "amplifier-switch", ampsw);
++	if (err) {
++		dev_err(dev, "Failed to request interrupt (%d)\n", err);
++		return err;
++	}
++
++	platform_set_drvdata(pdev, ampsw);
++
++	return 0;
++}
++
++static void amplifier_switch_shutdown(struct platform_device *pdev)
++{
++	struct simple_amplifier_switch *ampsw = platform_get_drvdata(pdev);
++
++	// Unregister interrupt
++	devm_free_irq(&pdev->dev, gpiod_to_irq(ampsw->sw), ampsw);
++
++	// Turn off all outputs
++	set_outputs(ampsw->outputs, 0);
++}
++
++static const struct of_device_id of_amplifier_switchs_match[] = {
++	{ .compatible = "simple-amplifier-switch" },
++	{/* sentinel */ }
++};
++MODULE_DEVICE_TABLE(of, of_amplifier_switchs_match);
++
++static struct platform_driver amplifier_switch_driver = {
++	.probe		= amplifier_switch_probe,
++	.shutdown	= amplifier_switch_shutdown,
++	.driver		= {
++		.name	= "simple-amplifier-switch",
++		.of_match_table = of_amplifier_switchs_match,
++	},
++};
++
++module_platform_driver(amplifier_switch_driver);
++
++MODULE_AUTHOR("PotatoMania <nikko@faint.day>");
++MODULE_DESCRIPTION("A simple GPIO controlled gpios switch");
++MODULE_LICENSE("GPL v2");
+\ No newline at end of file
+-- 
+2.42.0
+

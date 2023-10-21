@@ -1,0 +1,34 @@
+post_upgrade() {
+  if findmnt --fstab -uno SOURCE /boot &>/dev/null && ! mountpoint -q /boot; then
+    echo "WARNING: /boot appears to be a separate partition but is not mounted."
+  fi
+}
+
+post_remove() {
+  rm -f boot/initramfs-linux.img
+  rm -f boot/initramfs-linux-fallback.img
+}
+
+post_install() {
+  [ ! -f /boot/boot.txt ] && return
+  if ! grep "uconsole" /boot/config.txt > /dev/null
+  then
+    echo "\
+NOTICE: You might want to modify /boot/config.txt and add following content:
+ignore_lcd=1
+disable_fw_kms_setup=1
+max_framebuffers=2
+arm_boost=1
+
+kernel=Image.gz
+arm_64bit=1
+initramfs initramfs-linux.img followkernel
+
+dtoverlay=dwc2,dr_mode=host
+dtoverlay=vc4-kms-v3d
+dtoverlay=audremap,pins_12_13
+dtparam=audio=on
+dtoverlay=uconsole
+"
+  fi
+}

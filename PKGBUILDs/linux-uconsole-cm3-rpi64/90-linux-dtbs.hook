@@ -1,0 +1,10 @@
+[Trigger]
+Type = File
+Operation = Install
+Operation = Upgrade
+Target = boot/dtbs/*
+
+[Action]
+Description = Updating %PKGBASE% dtbs in /boot...
+When = PostTransaction
+Exec = /usr/bin/sh -c "cp /boot/dtbs/broadcom/bcm*.dtb /boot; cp -r /boot/dtbs/overlays /boot;"
