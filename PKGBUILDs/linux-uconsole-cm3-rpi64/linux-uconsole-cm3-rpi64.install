@@ -10,15 +10,12 @@ post_remove() {
 }
 
 post_install() {
-  [ ! -f /boot/boot.txt ] && return
-  if ! grep "uconsole" /boot/config.txt > /dev/null
+  if ! grep "uconsole" /boot/config.txt &>/dev/null
   then
     echo "\
 NOTICE: You might want to modify /boot/config.txt and add following content:
 ignore_lcd=1
 disable_fw_kms_setup=1
-max_framebuffers=2
-arm_boost=1
 
 kernel=Image.gz
 arm_64bit=1
