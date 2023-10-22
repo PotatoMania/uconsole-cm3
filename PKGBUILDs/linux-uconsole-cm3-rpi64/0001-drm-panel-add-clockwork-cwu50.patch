@@ -1,4 +1,4 @@
-From bae08fd3906853d782ada8380cebdceb8448e663 Mon Sep 17 00:00:00 2001
+From fbeac086761ba826c388228b21cd80c24379c59a Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Fri, 20 Oct 2023 23:18:19 +0800
 Subject: [PATCH 1/6] drm: panel: add clockwork cwu50

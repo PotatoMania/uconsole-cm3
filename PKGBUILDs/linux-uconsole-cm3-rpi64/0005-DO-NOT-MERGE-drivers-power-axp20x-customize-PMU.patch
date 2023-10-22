@@ -1,4 +1,4 @@
-From 85852a052c69c521cf06242852a0b98a707d5a3a Mon Sep 17 00:00:00 2001
+From d0029ff0f645a45773ed09daf894401270f80f45 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Sat, 21 Oct 2023 18:59:02 +0800
 Subject: [PATCH 5/6] [DO NOT MERGE] drivers: power: axp20x: customize PMU

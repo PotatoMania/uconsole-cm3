@@ -1,4 +1,4 @@
-From bed02270d1c18a7694df9174530d8f49d2866763 Mon Sep 17 00:00:00 2001
+From 95d29979ac136d8185333d392064a7298798c92a Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Fri, 13 Oct 2023 11:08:40 +0800
 Subject: [PATCH 4/6] driver: staging: add uconsole simple amplifier switch

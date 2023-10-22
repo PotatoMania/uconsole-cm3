@@ -1,4 +1,4 @@
-From 4b86cac07661415eba0e5c3188c32f4e5369bf9e Mon Sep 17 00:00:00 2001
+From 48a68344d8d71ad25770e7a9319c4f3898460e96 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Fri, 20 Oct 2023 23:13:42 +0800
 Subject: [PATCH 3/6] arm: dts: overlays: add uconsole
@@ -23,7 +23,7 @@ index 57e2577c9fc8..166bd5603605 100644
  	upstream.dtbo \
 diff --git a/arch/arm/boot/dts/overlays/uconsole.dts b/arch/arm/boot/dts/overlays/uconsole.dts
 new file mode 100644
-index 000000000000..036bdc9ed25a
+index 000000000000..a6beb5aecbf4
 --- /dev/null
 +++ b/arch/arm/boot/dts/overlays/uconsole.dts
 @@ -0,0 +1,327 @@
@@ -80,7 +80,7 @@ index 000000000000..036bdc9ed25a
 +
 +			battery: battery@0 {
 +				compatible = "simple-battery";
-+				constant_charge_current_max_microamp = <2100000>;
++				constant-charge-current-max-microamp = <2100000>;
 +				voltage-min-design-microvolt = <3300000>;
 +				voltage-max-design-microvolt = <4200000>;
 +			};
