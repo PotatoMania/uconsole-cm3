@@ -1,13 +1,13 @@
-From 00bb2b08686e65b37fda38c8a2c4f2fecf5af898 Mon Sep 17 00:00:00 2001
+From bae08fd3906853d782ada8380cebdceb8448e663 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Fri, 20 Oct 2023 23:18:19 +0800
-Subject: [PATCH 1/4] drm: panel: add clockwork cwu50
+Subject: [PATCH 1/6] drm: panel: add clockwork cwu50
 
 ---
  drivers/gpu/drm/panel/Kconfig                 |  12 +
  drivers/gpu/drm/panel/Makefile                |   1 +
- drivers/gpu/drm/panel/panel-clockwork-cwu50.c | 539 ++++++++++++++++++
- 3 files changed, 552 insertions(+)
+ drivers/gpu/drm/panel/panel-clockwork-cwu50.c | 538 ++++++++++++++++++
+ 3 files changed, 551 insertions(+)
  create mode 100644 drivers/gpu/drm/panel/panel-clockwork-cwu50.c
 
 diff --git a/drivers/gpu/drm/panel/Kconfig b/drivers/gpu/drm/panel/Kconfig
@@ -47,10 +47,10 @@ index bc4ded65aa4b..25d9c19d9cd0 100644
  obj-$(CONFIG_DRM_PANEL_SIMPLE) += panel-simple.o
 diff --git a/drivers/gpu/drm/panel/panel-clockwork-cwu50.c b/drivers/gpu/drm/panel/panel-clockwork-cwu50.c
 new file mode 100644
-index 000000000000..44ea679b6a01
+index 000000000000..1f60208038ea
 --- /dev/null
 +++ b/drivers/gpu/drm/panel/panel-clockwork-cwu50.c
-@@ -0,0 +1,539 @@
+@@ -0,0 +1,538 @@
 +/*
 + * SPDX-License-Identifier: GPL-2.0+
 + * Copyright (c) 2021 Clockwork Tech LLC
@@ -442,9 +442,8 @@ index 000000000000..44ea679b6a01
 +	}
 +
 +	err = mipi_dsi_dcs_get_power_mode(dsi, &response);
-+	if (err) {
-+		dev_warn(ctx->dev, "failed to read display power mode (%d)\n", err);
-+	} else {
++	if (!err) {
++		/* debug, normally the command will fail */
 +		dev_info(ctx->dev, "Read display power mode got: %d", response);
 +	}
 +

@@ -1,7 +1,7 @@
-From b37d7e614ec1251c1f981cd93ad0ecd38fde1341 Mon Sep 17 00:00:00 2001
+From 4b86cac07661415eba0e5c3188c32f4e5369bf9e Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Fri, 20 Oct 2023 23:13:42 +0800
-Subject: [PATCH 3/4] arm: dts: overlays: add uconsole
+Subject: [PATCH 3/6] arm: dts: overlays: add uconsole
 
 ---
  arch/arm/boot/dts/overlays/Makefile     |   1 +

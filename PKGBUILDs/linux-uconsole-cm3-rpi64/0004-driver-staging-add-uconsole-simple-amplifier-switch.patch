@@ -1,7 +1,7 @@
-From 6a89ae4a9abff4f2ee1e7bcc1225d171c70efcd4 Mon Sep 17 00:00:00 2001
+From bed02270d1c18a7694df9174530d8f49d2866763 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Fri, 13 Oct 2023 11:08:40 +0800
-Subject: [PATCH 4/4] driver: staging: add uconsole simple amplifier switch
+Subject: [PATCH 4/6] driver: staging: add uconsole simple amplifier switch
 
 ---
  drivers/staging/Kconfig                       |   2 +
