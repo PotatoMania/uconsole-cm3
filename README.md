@@ -1,5 +1,7 @@
 # uConsole CM3
 
+![Photo of a uConsole with CM3 core](pic/photo-uconsole-cm3.jpeg)
+
 Code and docs of uConsole with CM3 core.
 
 Here I use ~~mainline linux~~ RPi's downstream fork.
