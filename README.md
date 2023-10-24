@@ -19,7 +19,8 @@ I started from archlinuxarm's linux-aarch64. ~~It looks like RPi3's mainline sup
     - [x] HDMI(video) works
     - [x] WiFi works
     - [x] Bluetooth works
-    - [x] PMU works(mostly)
+    - [x] PMU works
+        - except the charging indicator/LED
     - [x] DSI panel works
         - sometimes panel will stay black after boot, reboot to fix
     - [x] Audio works
