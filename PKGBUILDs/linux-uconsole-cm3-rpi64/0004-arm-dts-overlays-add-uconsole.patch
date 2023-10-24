@@ -1,12 +1,13 @@
-From 48a68344d8d71ad25770e7a9319c4f3898460e96 Mon Sep 17 00:00:00 2001
+From 10069de947c92413323dc789d2d340215381a016 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Fri, 20 Oct 2023 23:13:42 +0800
-Subject: [PATCH 3/6] arm: dts: overlays: add uconsole
+Subject: [PATCH 4/6] arm: dts: overlays: add uconsole
 
+This overlay uses customized software i2c, which has the address 3.
 ---
  arch/arm/boot/dts/overlays/Makefile     |   1 +
- arch/arm/boot/dts/overlays/uconsole.dts | 327 ++++++++++++++++++++++++
- 2 files changed, 328 insertions(+)
+ arch/arm/boot/dts/overlays/uconsole.dts | 342 ++++++++++++++++++++++++
+ 2 files changed, 343 insertions(+)
  create mode 100644 arch/arm/boot/dts/overlays/uconsole.dts
 
 diff --git a/arch/arm/boot/dts/overlays/Makefile b/arch/arm/boot/dts/overlays/Makefile
@@ -23,22 +24,24 @@ index 57e2577c9fc8..166bd5603605 100644
  	upstream.dtbo \
 diff --git a/arch/arm/boot/dts/overlays/uconsole.dts b/arch/arm/boot/dts/overlays/uconsole.dts
 new file mode 100644
-index 000000000000..a6beb5aecbf4
+index 000000000000..510dda1786f7
 --- /dev/null
 +++ b/arch/arm/boot/dts/overlays/uconsole.dts
-@@ -0,0 +1,327 @@
+@@ -0,0 +1,342 @@
 +/dts-v1/;
 +/plugin/;
++
++#include <dt-bindings/gpio/gpio.h>
 +
 +/* uConsole All In One */
 +
 +/ {
 +	compatible = "brcm,bcm2835";
 +
-+	fragment@80 {
++	fragment@70 {
 +		target-path = "/aliases";
 +		__overlay__ {
-+			i2c0 = "/soc/i2c@7e205000";
++			i2c_uconsole = "/i2c@0";
 +			mmc1 = "/soc/mmc@7e300000";
 +			/* switch 0&1, I don't know why not use a cmdline parameter instead */
 +			serial1 = "/soc/serial@7e201000";
@@ -46,7 +49,14 @@ index 000000000000..a6beb5aecbf4
 +		};
 +	};
 +
-+	fragment@81 {
++	fragment@71 {
++		target-path = "/__symbols__";
++		__overlay__ {
++			i2c_uconsole = "/i2c@0";
++		};
++	};
++
++	fragment@80 {
 +		target-path = "/chosen";
 +		__overlay__ {
 +			bootargs = "snd_bcm2835.enable_headphones=1";
@@ -83,6 +93,17 @@ index 000000000000..a6beb5aecbf4
 +				constant-charge-current-max-microamp = <2100000>;
 +				voltage-min-design-microvolt = <3300000>;
 +				voltage-max-design-microvolt = <4200000>;
++			};
++
++			i2c_uconsole: i2c@0 {
++				reg = <3>;
++				compatible = "i2c-gpio";
++				gpios = <&gpio 0 (GPIO_ACTIVE_HIGH|GPIO_OPEN_DRAIN) /* sda */
++					 &gpio 1 (GPIO_ACTIVE_HIGH|GPIO_OPEN_DRAIN) /* scl */
++					>;
++				i2c-gpio,delay-us = <2>;        /* ~100 kHz */
++				#address-cells = <1>;
++				#size-cells = <0>;
 +			};
 +
 +			/* TPS61178, the supply for 5V bus, including USB, backlight
@@ -131,12 +152,7 @@ index 000000000000..a6beb5aecbf4
 +};
 +
 +/* PMU */
-+&i2c0if {
-+	#address-cells = <1>;
-+	#size-cells = <0>;
-+	pinctrl-0 = <&i2c0_pins>; /* GPIO 0,1 */
-+	pinctrl-names = "default";
-+	status = "okay";
++&i2c_uconsole {
 +
 +	axp22x: pmic@34 {
 +		interrupt-controller;

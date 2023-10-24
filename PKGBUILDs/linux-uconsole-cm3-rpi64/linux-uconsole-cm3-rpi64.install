@@ -16,11 +16,17 @@ post_install() {
 NOTICE: You might want to modify /boot/config.txt and add following content:
 ignore_lcd=1
 disable_fw_kms_setup=1
+disable_audio_dither
 
+# setup headphone detect pin
+gpio=10=ip,np
+
+# boot custom kernel
 kernel=Image.gz
 arm_64bit=1
 initramfs initramfs-linux.img followkernel
 
+# overlays
 dtoverlay=dwc2,dr_mode=host
 dtoverlay=vc4-kms-v3d
 dtoverlay=audremap,pins_12_13

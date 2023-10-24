@@ -4,7 +4,7 @@
 buildarch=8
 
 pkgbase=linux-uconsole-cm3-rpi64
-pkgver=6.1.y.20231021
+pkgver=6.1.y.20231024
 # _majorversion=${pkgver%.*}
 # _subversion=${pkgver##*.}
 # _srcname=linux-${_majorversion}
@@ -39,12 +39,12 @@ source=("${_srcname}::${_repourl}"
         '60-linux.hook'
         '90-linux.hook'
         '90-linux-dtbs.hook'
-        0001-drm-panel-add-clockwork-cwu50.patch
-        0002-video-backlight-Add-OCP8178-backlight-driver.patch
-        0003-arm-dts-overlays-add-uconsole.patch
-        0004-driver-staging-add-uconsole-simple-amplifier-switch.patch
-        0005-DO-NOT-MERGE-drivers-power-axp20x-customize-PMU.patch
-        0006-DO-NOT-MERGE-drm-vc4-apply-patch-from-CM4.patch
+        0001-video-backlight-Add-OCP8178-backlight-driver.patch
+        0002-drm-panel-add-clockwork-cwu50.patch
+        0003-driver-staging-add-uconsole-simple-amplifier-switch.patch
+        0004-arm-dts-overlays-add-uconsole.patch
+        0005-DO-NOT-MERGE-drm-vc4-apply-patch-from-CM4.patch
+        0006-DO-NOT-MERGE-drivers-power-axp20x-customize-PMU.patch
 )
 b2sums=('SKIP'
         'b74147c983ce63e77e4331be5257845561fab454c6f94cd471031d9160ce6804f750e561a9c0984a415e6fc89a6ac65329b04f308385c5baad3c16a09086f829'
@@ -52,12 +52,12 @@ b2sums=('SKIP'
         'c99fe9cf31cffb1bea779d2ee8a0895a533529d073b69e108422e97d01e1ab3c718ce3955bb16003663d33521b02ce926d3c7ecaa7bec4835dab31dbe8391163'
         'f39994fda3d76407b0af192534ca9931782b3e9de4e438a3adbc7640fc794c261102e5c7bfa1523c291ef8c7256c1106e6dbd40814006329c48d90f51c569e82'
         '94c528624dfa8f1c2d0f8cdda1ba0e2652736f6f635497a5b68170803da64cb516ff3d79607f49a8ea717ca830c35d21b6bee066f173dc7b80317e9e647bd63d'
-        '609c3185751bac8f0eca4cabfc1720b6b03fef4be7ac6669fbd215676e3d54b113834e3f7efa6cb367e170b7161721bf8b3d7a41983db260eb4d5c52fa423af7'
-        'a3d990887e208ac7dc8002ca1b7e99a5567523c51f9b4ecfff1bd25d6f472ccfd77fba5e0d904a5459da6970ed75871c3ebca78eb16d6e5daadc00f26c807345'
-        'ca1fa288e1687944bb13be512a6dd375ca9df163e70aae1dfeca1be4a4e245da2e32c135edb70d4b07747d82cae877f28ca5a17a3be2c4419c6cb146d0bf5c08'
-        'a0d891affb954ae22aaa3d4ee0f69dfbafa50f35d4522310f874b9870f1347d480664398c1831ac98f43a4ec07382dd9fb4379a73bb1dbb4e2851d4c5a105466'
-        '6163b3082866da61949a88a0cc2d5d7283b1a829c3485640ad412b57bb5f390eb1b68a01b5fb8f18a8dabfc7f6f2bc09f7606438fd6718b99ff46196be5366f5'
-        '01366afef77ebe83eafcd14e3619ccb4e8d2001fa6c487c3aeb69edf032514a59f2b38c7f41cd4d02ed2b25cbc9401509b10c58647ba1075f412b2e67a09a4b0')
+        '08ad887ce4da7abfecb07a29b2f6f5f868b02290771274e0519e28028d5c8a90ac51e17ff1d139e6fd5c0a9f12b28d1bf03d0a26cb9920d1126325c9a910d18b'
+        'efbefbff3f1ec9e2e5f71e98b33cc62429277dde8140dbe0fa8b8682d8a5ab61e6e0cd8e154bd7e2eae77d66e9ec552369a9d2ffc37029bf3b4ece72dc2ce093'
+        'b63350ad38402da4ef4a005282b0c349421e0513ca63c334d0836b7d29b3b93b6400ef341b910cc044b25e005600e58701ac73ed011bf9ef1adcf20591b67d07'
+        'fa2774223cc6c3fb2c06517b763ea773647d617a6c2099e0286d357b9e786ec5b9a89e87b2cce907266b0553decfc81328cc39cf2623a93924fdc9b946d5663e'
+        'a67d8a34f3bb68eab5a88ea6a5103186723b6c2d2d38900a10d6033266b84316d049cd28c71d46ad6e2635d0b3093d20adbb8fa2de4e8a52fdc73af351956bdc'
+        'eb1643dab24a2b8df9fab1b3d90e290fad72df6b13d9c424f3227fed1829e72ca642bc0abf15ac81000abbe500e82b51faeb3a54e3f7ea5fbbe487b3aad35c32')
 
 export KBUILD_BUILD_HOST=archlinux
 export KBUILD_BUILD_USER=$pkgbase

@@ -1,34 +1,63 @@
-From d0029ff0f645a45773ed09daf894401270f80f45 Mon Sep 17 00:00:00 2001
+From 4e3473018e69c4c29e70199405686b30b4267a97 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
-Date: Sat, 21 Oct 2023 18:59:02 +0800
-Subject: [PATCH 5/6] [DO NOT MERGE] drivers: power: axp20x: customize PMU
+Date: Tue, 24 Oct 2023 19:08:18 +0800
+Subject: [PATCH 6/6] [DO NOT MERGE] drivers: power: axp20x: customize PMU
 
-This is derived from uConsole patch for CM4. Some functions looks not
-necessary.
+This patch set some default states, add new sysfs apis, and register the
+power off callback to kernel.
 ---
- drivers/mfd/axp20x.c                   |  5 +--
+ drivers/mfd/axp20x.c                   | 22 ++++++++++++
  drivers/power/supply/axp20x_ac_power.c |  3 ++
  drivers/power/supply/axp20x_battery.c  | 46 ++++++++++++++++++++++++++
- 3 files changed, 52 insertions(+), 2 deletions(-)
+ 3 files changed, 71 insertions(+)
 
 diff --git a/drivers/mfd/axp20x.c b/drivers/mfd/axp20x.c
-index 880c41fa7021..e0de15941686 100644
+index 880c41fa7021..27c2000badc7 100644
 --- a/drivers/mfd/axp20x.c
 +++ b/drivers/mfd/axp20x.c
-@@ -1009,10 +1009,11 @@ int axp20x_device_probe(struct axp20x_dev *axp20x)
- 		return ret;
- 	}
+@@ -24,6 +24,7 @@
+ #include <linux/module.h>
+ #include <linux/of_device.h>
+ #include <linux/pm_runtime.h>
++#include <linux/reboot.h>
+ #include <linux/regmap.h>
+ #include <linux/regulator/consumer.h>
  
--	if (!pm_power_off) {
-+	/* FIXME: add actual quirk to enable fully poweroff the system by shutting down PMU */
-+	// if (!pm_power_off) {
+@@ -845,6 +846,21 @@ static void axp20x_power_off(void)
+ 	mdelay(500);
+ }
+ 
++static int axp20x_power_off_handler(struct sys_off_data *data)
++{
++	struct axp20x_dev *device = data->cb_data;
++
++	if (device->variant == AXP288_ID)
++		return NOTIFY_DONE;
++
++	regmap_write(device->regmap, AXP20X_OFF_CTRL, AXP20X_OFF);
++
++	/* Give capacitors etc. time to drain to avoid kernel panic msg. */
++	mdelay(500);
++
++	return NOTIFY_DONE;
++}
++
+ int axp20x_match_device(struct axp20x_dev *axp20x)
+ {
+ 	struct device *dev = axp20x->dev;
+@@ -1012,6 +1028,12 @@ int axp20x_device_probe(struct axp20x_dev *axp20x)
+ 	if (!pm_power_off) {
  		axp20x_pm_power_off = axp20x;
  		pm_power_off = axp20x_power_off;
--	}
-+	// }
++	} else {
++		/* register power off handler */
++		ret = devm_register_power_off_handler(axp20x->dev, axp20x_power_off_handler, axp20x);
++		if (ret) {
++			dev_warn(axp20x->dev, "Failed to register power off handler! (%d)", ret);
++		}
+ 	}
  
  	dev_info(axp20x->dev, "AXP20X driver loaded\n");
- 
 diff --git a/drivers/power/supply/axp20x_ac_power.c b/drivers/power/supply/axp20x_ac_power.c
 index 57e50208d537..ce7ad453201c 100644
 --- a/drivers/power/supply/axp20x_ac_power.c
