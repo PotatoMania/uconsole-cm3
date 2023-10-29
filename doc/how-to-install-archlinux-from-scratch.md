@@ -2,6 +2,9 @@
 
 _DRAFT_
 
+> It looks like there's a more detailed guide at [Autianic/clockworkpi-linux](https://github.com/Autianic/clockworkpi-linux#arch-linux-arm-chroot-environment-setup). It tells how to build the packages and how to make the partitions.
+> The exception is that CM3 can only boot from a fat partition on a MBR partition table, with a proprietary bootloader. So no u-boot related stuff is necessary.
+
 A Linux-based host computer(a VM is fine) is required for this guide. In best case, an ArchLinux host. If OS installation is not preferred/available, live CDs can be used.
 
 This guide assumes that a ArchLinux host is used. Please make necessary changes when operating with other distros.
@@ -125,7 +128,7 @@ pacman-key --init
 pacman-key --populate archlinuxarm
 # then install packages
 pacman -Sy raspberrypi-bootloader firmware-raspberrypi
-pacman -U linux-uconsole-cm3-rpi64*.pkg.zst
+pacman -U --noconfirm linux-uconsole-cm3-rpi64*.pkg.zst
 ```
 
 _Note: preinstalled `linux-aarch64` is uninstalled when installing `linux-uconsole-cm3-rpi64`._
