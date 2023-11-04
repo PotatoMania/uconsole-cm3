@@ -128,6 +128,10 @@ prepare() {
   echo "Prepared $pkgbase version $(<version)"
 }
 
+pkgver() {
+  cat ${_srcname}/version | sed "s/${pkgbase#linux}//; s/^v//; s/-/.r/; s/-g/./; s/-/./"
+}
+
 build() {
   cd ${_srcname}
 
