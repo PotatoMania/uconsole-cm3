@@ -22,13 +22,14 @@ I started from archlinuxarm's linux-aarch64. ~~It looks like RPi3's mainline sup
     - [x] PMU works
         - except the charging indicator/LED
     - [x] DSI panel works
-        - sometimes panel will stay black after boot, reboot to fix
+        - There will be some error messages from kernel when screen is turned off, and it seems safe to ignore them.
     - [x] Audio works
         - [x] with 3.5mm jack detection
+            - A better virtual sound card mode should be implemented to maintain different volume values for different outputs. But I don't know how. Help wanted.
 - ~~[ ] trim build config~~
 - [ ] setup CI/CD?
 
-I've successfully adapted the uConsole patches to CM3. I've even written a new kernel driver to support automatic amplifier switch, so the speaker will automatically shutdown when 3.5mm jack is used.
+I've successfully adapted the uConsole patches to CM3. I've even written a new kernel driver to support automatic amplifier switch, so the speaker will automatically shutdown when 3.5mm jack is used. No software polling, efficient.
 
 Raise issue if you have any problems.
 
@@ -68,6 +69,25 @@ The charging LED is not configured yet. So it's normal that the orange LED is of
 
 The power button is the system power button, that means you can shutdown your uConsole just by pressing the power button.
 
+Since Sun Nov  5 UTC 2023, this repo contains patches to enable gauge calibration on AXP228. To use it:
+
+```bash
+# initialize calibration
+echo 1 | sudo tee /sys/class/power_supply/axp20x-battery/calibrate
+
+# check status
+cat /sys/class/power_supply/axp20x-battery/calibrate
+# BIT(5): feature status, 1 for enabled
+# BIT(4): active state, 1 for active, should be 0 after calibration done
+
+# read current capacity(uWh)
+# This is calculated from original uAh value from PMU reads.
+# It assumes the typical voltage is 3.6V.
+cat /sys/class/power_supply/axp20x-battery/energy_full
+```
+
 ### DSI panel
 
-Sometimes the screen will stay black. This is because a data transfer timeout. It rarely occurs and can be fixed with a reboot.
+~~Sometimes the screen will stay black. This is because a data transfer timeout. It rarely occurs and can be fixed with a reboot.~~ This could result from the PMU I2C communication issue(especially with I2C0 on RPi3 series), and is resolved by using bitbang I2C driver.
+
+Kernel will spit error messages about failed to turn off the panel. It's harmless as far as I can tell.
