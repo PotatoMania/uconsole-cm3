@@ -1,7 +1,7 @@
 From 10069de947c92413323dc789d2d340215381a016 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Fri, 20 Oct 2023 23:13:42 +0800
-Subject: [PATCH 4/6] arm: dts: overlays: add uconsole
+Subject: [PATCH 4/8] arm: dts: overlays: add uconsole
 
 This overlay uses customized software i2c, which has the address 3.
 ---

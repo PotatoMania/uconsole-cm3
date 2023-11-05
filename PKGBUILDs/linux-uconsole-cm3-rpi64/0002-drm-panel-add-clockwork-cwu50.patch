@@ -1,7 +1,7 @@
 From d2fc0aa23f774af9207b41db64ae3503e52f2fae Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Fri, 20 Oct 2023 23:18:19 +0800
-Subject: [PATCH 2/6] drm: panel: add clockwork cwu50
+Subject: [PATCH 2/8] drm: panel: add clockwork cwu50
 
 ---
  drivers/gpu/drm/panel/Kconfig                 |  12 +
