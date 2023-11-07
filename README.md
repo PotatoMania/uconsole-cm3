@@ -51,11 +51,15 @@ _And I need time/investment for other personal projects._
 
 ## Notes
 
-### WiFi
+### WiFi & BT
 
-Because of the operation voltage(3.3V by default), the wireless module cannot run at its highest speed. But it should be enough.
+Because of the operation voltage(3.3V by default), the WiFi part of the wireless module cannot run at its highest speed. But it should be enough.
 
 __THIS IS NOT TESTED__: If you want to experiment with higher speed, you might want to change the jumpers(ZERO Ohm resistors) on the main board. Then you need to modify the device tree overlay to adjust the corresponding voltage.
+
+BT serial speed will affect module's wireless performance. Just a note.
+
+For Arch users: there's a [firmware package](https://gitlab.manjaro.org/manjaro-arm/packages/community/ap6256-firmware) to enable WiFi and BT hardware, packaged by Manjaro devs. It replaces the firmware packages derived from Armbian's and RPi's repositories.
 
 ### 4G/LTE modem
 
