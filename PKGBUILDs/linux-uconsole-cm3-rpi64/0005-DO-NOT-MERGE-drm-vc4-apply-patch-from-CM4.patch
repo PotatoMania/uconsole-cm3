@@ -1,7 +1,7 @@
-From c2f5b48f4c81332167c72101c14195677d021d6d Mon Sep 17 00:00:00 2001
+From a4f594c0eb0cd3e09c41f65270334ee3b05a0e79 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Tue, 17 Oct 2023 13:41:58 +0800
-Subject: [PATCH 5/8] [DO NOT MERGE] drm: vc4: apply patch from CM4
+Subject: [PATCH 5/7] [DO NOT MERGE] drm: vc4: apply patch from CM4
 
 uConsole CM4 patch contains this, but I don't know why.
 ---

@@ -1,10 +1,10 @@
-From 4e3473018e69c4c29e70199405686b30b4267a97 Mon Sep 17 00:00:00 2001
+From c1edf8b9de78cef6c12e51bbb2735ec8133945a9 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Tue, 24 Oct 2023 19:08:18 +0800
-Subject: [PATCH 6/8] [DO NOT MERGE] drivers: power: axp20x: customize PMU
+Subject: [PATCH 6/7] [DO NOT MERGE] drivers: power: axp20x: customize PMU
 
-This patch set some default states, add new sysfs apis, and register the
-power off callback to kernel.
+This patch set some default states, add new sysfs interfaces, and register the
+power off callback to kernel. Mostly harmless.
 ---
  drivers/mfd/axp20x.c                   | 22 ++++++++++++
  drivers/power/supply/axp20x_ac_power.c |  3 ++

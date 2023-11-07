@@ -1,15 +1,20 @@
-From 36119999fd3a5dd38549c0082a98114761b566c7 Mon Sep 17 00:00:00 2001
+From 69652dd809f2807144666ae30bc5b3cadac29cf4 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Sat, 4 Nov 2023 19:02:17 +0800
-Subject: [PATCH 7/8] [DO NOT MERGE] power: axp20x_battery: add calibration
+Subject: [PATCH 7/7] [DO NOT MERGE] power: axp20x_battery: add calibration
  support
 
+- add sysfs interface to initiate calibration
+- capacity/energy is read from PMU rather than using a predefined value
+- energy_full_designed is loaded from either
+  energy-full-design-microwatt-hours or charge-full-design-microamp-hours
+  - default is 8Wh
 ---
- drivers/power/supply/axp20x_battery.c | 89 ++++++++++++++++++++++++---
- 1 file changed, 80 insertions(+), 9 deletions(-)
+ drivers/power/supply/axp20x_battery.c | 78 +++++++++++++++++++++++----
+ 1 file changed, 68 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/power/supply/axp20x_battery.c b/drivers/power/supply/axp20x_battery.c
-index 9de38ce10872..58c26f5d4f6e 100644
+index 9de38ce10872..c6248f021a56 100644
 --- a/drivers/power/supply/axp20x_battery.c
 +++ b/drivers/power/supply/axp20x_battery.c
 @@ -56,6 +56,10 @@
@@ -39,47 +44,51 @@ index 9de38ce10872..58c26f5d4f6e 100644
  		/* When no battery is present, return 0 */
  		ret = regmap_read(axp20x_batt->regmap, AXP20X_PWR_OP_MODE,
  				  &reg);
-@@ -340,7 +346,27 @@ static int axp20x_battery_get_prop(struct power_supply *psy,
- 		}
- 
- 		if(psp == POWER_SUPPLY_PROP_ENERGY_FULL) {
--			val->intval = 8000000;
-+			/* read from PMU */
-+			val->intval = axp20x_batt->energy_full_design;
-+
-+			ret = regmap_read(axp20x_batt->regmap, AXP288_FG_DES_CAP0_REG, &reg); // [7:0]
-+			if (ret)
-+				return ret;
-+
-+			val1 = reg;
-+
-+			ret = regmap_read(axp20x_batt->regmap, AXP288_FG_DES_CAP1_REG, &reg); // [14:8]
-+			if (ret)
-+				return ret;
-+
-+			val1 |= (reg & 0x3F) << 8;
-+
-+			val->intval = val1 * 1456 * 36 / 10;
-+			return 0;
-+		}
-+
-+		if(psp == POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN) {
-+			val->intval = axp20x_batt->energy_full_design;
+@@ -339,8 +345,29 @@ static int axp20x_battery_get_prop(struct power_supply *psy,
  			return 0;
  		}
  
-@@ -352,14 +378,17 @@ static int axp20x_battery_get_prop(struct power_supply *psy,
++		if(psp == POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN) {
++			val->intval = axp20x_batt->energy_full_design;
++			return 0;
++		}
++
++		/* read capacity from PMU */
++		val->intval = axp20x_batt->energy_full_design;
++
++		ret = regmap_read(axp20x_batt->regmap, AXP288_FG_DES_CAP0_REG, &reg); // [7:0]
++		if (ret)
++			return ret;
++
++		val1 = reg;
++
++		ret = regmap_read(axp20x_batt->regmap, AXP288_FG_DES_CAP1_REG, &reg); // [14:8]
++		if (ret)
++			return ret;
++
++		val1 |= (reg & 0x3F) << 8; // capacity report from pmu, unit 1.456mAh
++		val1 = val1 * 1456 * 36 / 10; // uWh
++
+ 		if(psp == POWER_SUPPLY_PROP_ENERGY_FULL) {
+-			val->intval = 8000000;
++			val->intval = val1;
+ 			return 0;
+ 		}
+ 
+@@ -351,15 +378,18 @@ static int axp20x_battery_get_prop(struct power_supply *psy,
+ 		if (axp20x_batt->data->has_fg_valid && !(reg & AXP22X_FG_VALID))
  			return -EINVAL;
  
- 		val1 = reg & AXP209_FG_PERCENT;
+-		val1 = reg & AXP209_FG_PERCENT;
 -		if (val1 > 90)
 -			val1= 80;
 -		else if (val1 < 10)
 -			val1 = 0;
 -		else
 -			val1 -= 10;
-+		val1 = max(min(val1, 100), 0);
-+		val->intval = (val1 * ((long long int)(axp20x_batt->energy_full_design))) / 100;
++		reg = reg & AXP209_FG_PERCENT;
++		reg = max(min(reg, 100), 0);
++		val->intval = (reg * ((long long int)(val1))) / 100;
 +		break;
  
 -		val->intval = val1 * 100000;
@@ -93,7 +102,7 @@ index 9de38ce10872..58c26f5d4f6e 100644
  		break;
  
  	default:
-@@ -490,6 +519,7 @@ static int axp20x_battery_set_prop(struct power_supply *psy,
+@@ -490,6 +520,7 @@ static int axp20x_battery_set_prop(struct power_supply *psy,
  				   const union power_supply_propval *val)
  {
  	struct axp20x_batt_ps *axp20x_batt = power_supply_get_drvdata(psy);
@@ -101,7 +110,7 @@ index 9de38ce10872..58c26f5d4f6e 100644
  
  	switch (psp) {
  	case POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN:
-@@ -504,6 +534,15 @@ static int axp20x_battery_set_prop(struct power_supply *psy,
+@@ -504,6 +535,15 @@ static int axp20x_battery_set_prop(struct power_supply *psy,
  	case POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT_MAX:
  		return axp20x_set_max_constant_charge_current(axp20x_batt,
  							      val->intval);
@@ -117,7 +126,7 @@ index 9de38ce10872..58c26f5d4f6e 100644
  	case POWER_SUPPLY_PROP_STATUS:
  		switch (val->intval) {
  		case POWER_SUPPLY_STATUS_CHARGING:
-@@ -535,6 +574,8 @@ static enum power_supply_property axp20x_battery_props[] = {
+@@ -535,6 +575,8 @@ static enum power_supply_property axp20x_battery_props[] = {
  	POWER_SUPPLY_PROP_CAPACITY,
  	POWER_SUPPLY_PROP_ENERGY_FULL,
  	POWER_SUPPLY_PROP_ENERGY_NOW,
@@ -126,7 +135,7 @@ index 9de38ce10872..58c26f5d4f6e 100644
  };
  
  static int axp20x_battery_prop_writeable(struct power_supply *psy,
-@@ -544,7 +585,8 @@ static int axp20x_battery_prop_writeable(struct power_supply *psy,
+@@ -544,7 +586,8 @@ static int axp20x_battery_prop_writeable(struct power_supply *psy,
  	       psp == POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN ||
  	       psp == POWER_SUPPLY_PROP_VOLTAGE_MAX_DESIGN ||
  	       psp == POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT ||
@@ -136,7 +145,7 @@ index 9de38ce10872..58c26f5d4f6e 100644
  }
  
  static const struct power_supply_desc axp20x_batt_ps_desc = {
-@@ -654,6 +696,7 @@ static int axp20x_power_probe(struct platform_device *pdev)
+@@ -654,6 +697,7 @@ static int axp20x_power_probe(struct platform_device *pdev)
  	if (!power_supply_get_battery_info(axp20x_batt->batt, &info)) {
  		int vmin = info->voltage_min_design_uv;
  		int ccc = info->constant_charge_current_max_ua;
@@ -144,7 +153,7 @@ index 9de38ce10872..58c26f5d4f6e 100644
  
  		if (vmin > 0 && axp20x_set_voltage_min_design(axp20x_batt,
  							      vmin))
-@@ -671,6 +714,34 @@ static int axp20x_power_probe(struct platform_device *pdev)
+@@ -671,6 +715,20 @@ static int axp20x_power_probe(struct platform_device *pdev)
  			axp20x_batt->max_ccc = ccc;
  			axp20x_set_constant_charge_current(axp20x_batt, ccc);
  		}
@@ -161,21 +170,7 @@ index 9de38ce10872..58c26f5d4f6e 100644
 +		else if (info->charge_full_design_uah != -EINVAL)
 +			axp20x_batt->energy_full_design = cfd / 10 * 36; // assume standard voltage 3.6V
 +		else
-+			axp20x_batt->energy_full_design = 8000000;
-+
-+		// tell pmic about our battery
-+		// if (cfd > 0) {
-+		// 	// [14:8], [7:0], cfd = Value * 1.456mAh
-+		// 	cfd = cfd / 1456;
-+		// 	regmap_update_bits(axp20x_batt->regmap, AXP288_FG_DES_CAP0_REG, 0xff, cfd & 0xff);
-+		// 	regmap_update_bits(axp20x_batt->regmap, AXP288_FG_DES_CAP1_REG, 0xff, BIT(7) | ((cfd >> 8) & 0xff));
-+		// } else {
-+		// 	dev_warn(axp20x_batt->dev, "energy full design is not set(%d), default to 8000000\n", cfd);
-+		// 	axp20x_batt->energy_full_design = 8000000;
-+		// }
-+	// } else {
-+	// 	dev_warn(axp20x_batt->dev, "cannot get battery info, set energy_full_design to 8000000\n");
-+	// 	axp20x_batt->energy_full_design = 8000000;
++			axp20x_batt->energy_full_design = 8000000; // default capacity, 8Wh
  	}
  
  	/*
