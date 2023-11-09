@@ -61,6 +61,9 @@ BT serial speed will affect module's wireless performance. Just a note.
 
 For Arch users: there's a [firmware package](https://gitlab.manjaro.org/manjaro-arm/packages/community/ap6256-firmware) to enable WiFi and BT hardware, packaged by Manjaro devs. It replaces the firmware packages derived from Armbian's and RPi's repositories.
 
+BT & WiFi coexistence may need further tweaking. When there's traffic over 2.4G WiFi, BT audio will stutter. Read [this post](https://community.infineon.com/t5/AIROC-Wi-Fi-and-Wi-Fi-Bluetooth/Bluetooth-audio-streaming-WiFi-inteference/td-p/379269) for available parameters. I failed to make BT audio stable with 2.4G WiFi. One workaround is soft-blocking WiFi using rfkill, or use 5G WiFi only.
+Contributions welcomed.
+
 ### 4G/LTE modem
 
 On uConsole with CM3, the official LTE modem will __ALWAYS__ be powered up on boot because the initial pulls of the pins.
