@@ -55,14 +55,14 @@ _And I need time/investment for other personal projects._
 
 Because of the operation voltage(3.3V by default), the WiFi part of the wireless module cannot run at its highest speed. But it should be enough.
 
-__THIS IS NOT TESTED__: If you want to experiment with higher speed, you might want to change the jumpers(ZERO Ohm resistors) on the main board. Then you need to modify the device tree overlay to adjust the corresponding voltage.
-
 BT serial speed will affect module's wireless performance. Just a note.
 
-For Arch users: there's a [firmware package](https://gitlab.manjaro.org/manjaro-arm/packages/community/ap6256-firmware) to enable WiFi and BT hardware, packaged by Manjaro devs. It replaces the firmware packages derived from Armbian's and RPi's repositories.
+For Arch users: there's a [firmware package](https://gitlab.manjaro.org/manjaro-arm/packages/community/ap6256-firmware) to enable WiFi and BT hardware, packaged by Manjaro devs. It replaces the firmware packages derived from Armbian's and RPi's repositories, `brcmfmac43456-firmware` in aur and `firmware-raspberrypi` in alarm, respectively.
 
 BT & WiFi coexistence may need further tweaking. When there's traffic over 2.4G WiFi, BT audio will stutter. Read [this post](https://community.infineon.com/t5/AIROC-Wi-Fi-and-Wi-Fi-Bluetooth/Bluetooth-audio-streaming-WiFi-inteference/td-p/379269) for available parameters. I failed to make BT audio stable with 2.4G WiFi. One workaround is soft-blocking WiFi using rfkill, or use 5G WiFi only.
 Contributions welcomed.
+
+__THIS IS NOT TESTED__: If you want to experiment with higher speed, you might want to change the jumpers(ZERO Ohm resistors) on the main board. Then you need to modify the device tree overlay to adjust the corresponding voltage.
 
 ### 4G/LTE modem
 
@@ -70,9 +70,9 @@ On uConsole with CM3, the official LTE modem will __ALWAYS__ be powered up on bo
 
 ### PMU/Power control
 
-When plugged in, the system might not able to fully shutdown itself.
+~~When plugged in, the system might not able to fully shutdown itself.~~ This is no longer a problem. This originates from I2C0's issue on RPi3 series. Some how the communication will fail if hardware I2C0 is used.
 
-The charging LED is not configured yet. So it's normal that the orange LED is off when power cable plugged in.
+The charging LED is not configured yet. So it's normal that the orange LED stays off when power cable plugged in.
 
 The power button is the system power button, that means you can shutdown your uConsole just by pressing the power button.
 
