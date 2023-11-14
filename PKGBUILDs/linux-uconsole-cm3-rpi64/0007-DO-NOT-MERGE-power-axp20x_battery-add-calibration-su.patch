@@ -1,4 +1,4 @@
-From 69652dd809f2807144666ae30bc5b3cadac29cf4 Mon Sep 17 00:00:00 2001
+From 60e3cb1a71fb947c3fc188c3081a6963eeaf465d Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Sat, 4 Nov 2023 19:02:17 +0800
 Subject: [PATCH 7/7] [DO NOT MERGE] power: axp20x_battery: add calibration
@@ -14,7 +14,7 @@ Subject: [PATCH 7/7] [DO NOT MERGE] power: axp20x_battery: add calibration
  1 file changed, 68 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/power/supply/axp20x_battery.c b/drivers/power/supply/axp20x_battery.c
-index 9de38ce10872..c6248f021a56 100644
+index 53b53137a480..609d240305a2 100644
 --- a/drivers/power/supply/axp20x_battery.c
 +++ b/drivers/power/supply/axp20x_battery.c
 @@ -56,6 +56,10 @@
@@ -175,5 +175,5 @@ index 9de38ce10872..c6248f021a56 100644
  
  	/*
 -- 
-2.42.0
+2.42.1
 

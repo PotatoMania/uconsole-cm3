@@ -1,4 +1,4 @@
-From d5490b2f95513bb6c7a6aba11fd2a8d841a9877e Mon Sep 17 00:00:00 2001
+From eebc64d2eef57c6fed1013323e3563addb25f45d Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Fri, 13 Oct 2023 11:08:40 +0800
 Subject: [PATCH 3/7] driver: staging: add uconsole simple amplifier switch
@@ -199,5 +199,5 @@ index 000000000000..2471e035c213
 +MODULE_LICENSE("GPL v2");
 \ No newline at end of file
 -- 
-2.42.0
+2.42.1
 

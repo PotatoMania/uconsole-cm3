@@ -1,4 +1,4 @@
-From 060a1702151455201f27b05887a0539f8491a9af Mon Sep 17 00:00:00 2001
+From 146a23664dd4da2727690f08ec721b7fc73da5b7 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Fri, 20 Oct 2023 23:18:19 +0800
 Subject: [PATCH 2/7] drm: panel: add clockwork cwu50
@@ -590,5 +590,5 @@ index 000000000000..1f60208038ea
 +MODULE_DESCRIPTION("ClockworkPi CWU50 panel driver");
 +MODULE_LICENSE("GPL v2");
 -- 
-2.42.0
+2.42.1
 

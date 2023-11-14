@@ -1,4 +1,4 @@
-From c1edf8b9de78cef6c12e51bbb2735ec8133945a9 Mon Sep 17 00:00:00 2001
+From 1b65512a72f47f2857e67cf3bcda022d9b5b4d4b Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Tue, 24 Oct 2023 19:08:18 +0800
 Subject: [PATCH 6/7] [DO NOT MERGE] drivers: power: axp20x: customize PMU
@@ -6,10 +6,10 @@ Subject: [PATCH 6/7] [DO NOT MERGE] drivers: power: axp20x: customize PMU
 This patch set some default states, add new sysfs interfaces, and register the
 power off callback to kernel. Mostly harmless.
 ---
- drivers/mfd/axp20x.c                   | 22 ++++++++++++
+ drivers/mfd/axp20x.c                   | 22 +++++++++++++
  drivers/power/supply/axp20x_ac_power.c |  3 ++
- drivers/power/supply/axp20x_battery.c  | 46 ++++++++++++++++++++++++++
- 3 files changed, 71 insertions(+)
+ drivers/power/supply/axp20x_battery.c  | 44 ++++++++++++++++++++++++++
+ 3 files changed, 69 insertions(+)
 
 diff --git a/drivers/mfd/axp20x.c b/drivers/mfd/axp20x.c
 index 880c41fa7021..27c2000badc7 100644
@@ -73,7 +73,7 @@ index 57e50208d537..ce7ad453201c 100644
  
  	return IRQ_HANDLED;
 diff --git a/drivers/power/supply/axp20x_battery.c b/drivers/power/supply/axp20x_battery.c
-index 9106077c0dbb..9de38ce10872 100644
+index 9106077c0dbb..53b53137a480 100644
 --- a/drivers/power/supply/axp20x_battery.c
 +++ b/drivers/power/supply/axp20x_battery.c
 @@ -326,6 +326,42 @@ static int axp20x_battery_get_prop(struct power_supply *psy,
@@ -128,21 +128,19 @@ index 9106077c0dbb..9de38ce10872 100644
  };
  
  static int axp20x_battery_prop_writeable(struct power_supply *psy,
-@@ -642,6 +680,14 @@ static int axp20x_power_probe(struct platform_device *pdev)
+@@ -642,6 +680,12 @@ static int axp20x_power_probe(struct platform_device *pdev)
  	axp20x_get_constant_charge_current(axp20x_batt,
  					   &axp20x_batt->max_ccc);
  
 +	regmap_update_bits(axp20x_batt->regmap, AXP20X_VBUS_IPSOUT_MGMT, 0x03, 0x03); /* do not limit IPSOUT current */
-+	// regmap_update_bits(axp20x_batt->regmap, AXP20X_OFF_CTRL, 0x08, 0x08); /* set charge led controlled by charge module */
-+	// regmap_update_bits(axp20x_batt->regmap, AXP20X_CHRG_CTRL2, 0x30, 0x20); /* full charge output, charge led function type */
-+	// /* configure power key */
-+	// regmap_update_bits(axp20x_batt->regmap, AXP20X_PEK_KEY, 0x0f, 0x0b);
-+	// /* configure charging LED */
-+	// regmap_update_bits(axp20x_batt->regmap, AXP20X_GPIO0_CTRL, 0x07, 0x00);
++	regmap_update_bits(axp20x_batt->regmap, AXP20X_OFF_CTRL, 0x08, 0x08); /* set charge led controlled by charge module */
++	regmap_update_bits(axp20x_batt->regmap, AXP20X_CHRG_CTRL2, 0x30, 0x20); /* full charge output, charge led function type */
++	// regmap_update_bits(axp20x_batt->regmap, AXP20X_PEK_KEY, 0x0f, 0x0b); /* configure power key, this is handled by PEK driver */
++	regmap_update_bits(axp20x_batt->regmap, AXP20X_GPIO0_CTRL, 0x07, 0x00); /* configure charging LED */
 +
  	return 0;
  }
  
 -- 
-2.42.0
+2.42.1
 
