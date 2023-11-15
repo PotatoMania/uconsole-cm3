@@ -1,4 +1,4 @@
-From c24fb5ee71da355c2df7deefb35f2491951636f4 Mon Sep 17 00:00:00 2001
+From d6a85fd419fad0683f2bb13f22d9fc61f98650fe Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Tue, 17 Oct 2023 13:41:58 +0800
 Subject: [PATCH 5/7] [DO NOT MERGE] drm: vc4: apply patch from CM4

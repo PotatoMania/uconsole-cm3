@@ -1,16 +1,14 @@
-From 6371be1cdc7da3f4643853df6d90b76b6f38fc5b Mon Sep 17 00:00:00 2001
+From 7f7a3dcadc423bbd0e113de9cfc8c3124e352751 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Fri, 20 Oct 2023 23:13:42 +0800
 Subject: [PATCH 4/7] arm: dts: overlays: add uconsole
 
 This overlay uses customized software i2c, which has the address 3.
 BT serial speed is set to 1500000 to improve stability of both BT and WiFi.
-
-- dt node `axp_gpio` is commented out, so hacks can be applied later
 ---
  arch/arm/boot/dts/overlays/Makefile     |   1 +
- arch/arm/boot/dts/overlays/uconsole.dts | 345 ++++++++++++++++++++++++
- 2 files changed, 346 insertions(+)
+ arch/arm/boot/dts/overlays/uconsole.dts | 366 ++++++++++++++++++++++++
+ 2 files changed, 367 insertions(+)
  create mode 100644 arch/arm/boot/dts/overlays/uconsole.dts
 
 diff --git a/arch/arm/boot/dts/overlays/Makefile b/arch/arm/boot/dts/overlays/Makefile
@@ -27,10 +25,10 @@ index 57e2577c9fc8..166bd5603605 100644
  	upstream.dtbo \
 diff --git a/arch/arm/boot/dts/overlays/uconsole.dts b/arch/arm/boot/dts/overlays/uconsole.dts
 new file mode 100644
-index 000000000000..7b2e9b675b41
+index 000000000000..931128d83793
 --- /dev/null
 +++ b/arch/arm/boot/dts/overlays/uconsole.dts
-@@ -0,0 +1,345 @@
+@@ -0,0 +1,366 @@
 +/dts-v1/;
 +/plugin/;
 +
@@ -152,6 +150,24 @@ index 000000000000..7b2e9b675b41
 +
 +&leds {
 +	/delete-node/ led-act;
++
++	/* This is the green LED under the power button,
++	 * However this is not usable without a hardware modification(move R117 to R116)
++	 */
++	// act_led: led-act {
++	//	linux,default-trigger = "default-on";
++	// 	gpios = <&axp_gpio 0 1>; /* gpio0 on pmu, low active */
++	// 	// function = "activity";
++	// };
++
++	/* This is the orange charging LED under the power button.
++	 * Requires a patch to the pinctrl-axp209 driver, because
++	 * charge led is not a gpio thus not supported.
++	 */
++	// chg_led: led-chg {
++	// 	linux,default-trigger = "axp20x-battery-charging-blink-full-solid";
++	// 	gpios = <&axp_gpio 99 1>; /* CHGLED on pmu, low active */
++	// };
 +};
 +
 +/* PMU */
@@ -281,14 +297,17 @@ index 000000000000..7b2e9b675b41
 +			#io-channel-cells = <1>;
 +		};
 +
-+		/* TODO: utilize the LEDs(GPIOs), uConsole has only one(GPIO0) connected to a LED(Orange, LOW active)
-+		 * Code by CPi devs leaves the GPIO to be managed by PMU.
-+		 */
-+		// axp_gpio: gpio {
-+		// 	compatible = "x-powers,axp221-gpio";
-+		// 	gpio-controller;
-+		// 	#gpio-cells = <2>;
-+		// };
++		axp_gpio: gpio {
++			compatible = "x-powers,axp221-gpio";
++			gpio-controller;
++			#gpio-cells = <2>;
++			status = "disabled";
++
++			gpio0_out: gpio0-out-pin {
++				pins = "GPIO0";
++				function = "gpio_out";
++			};
++		};
 +
 +		/* IPSOUT, feed to on-board buck to get 5V output */
 +		/* TODO: figure out how to configure it properly */
