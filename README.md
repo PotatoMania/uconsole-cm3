@@ -20,7 +20,7 @@ I started from archlinuxarm's linux-aarch64. ~~It looks like RPi3's mainline sup
     - [x] WiFi works
     - [x] Bluetooth works
     - [x] PMU works
-        - except the charging indicator/LED
+        - the charging indicator/LED uses the same hack from CPi's patch, now LED will stay on when charging
     - [x] DSI panel works
         - There will be some error messages from kernel when screen is turned off, and it seems safe to ignore them.
     - [x] Audio works
@@ -72,9 +72,7 @@ On uConsole with CM3, the official LTE modem will __ALWAYS__ be powered up on bo
 
 ~~When plugged in, the system might not able to fully shutdown itself.~~ This is no longer a problem. This originates from I2C0's issue on RPi3 series. Some how the communication will fail if hardware I2C0 is used.
 
-The charging LED is not configured yet. So it's normal that the orange LED stays off when power cable plugged in.
-
-The power button is the system power button, that means you can shutdown your uConsole just by pressing the power button.
+The power button is the system power button, that means you can shutdown your uConsole just by clicking the power button.
 
 Since Sun Nov  5 UTC 2023, this repo contains patches to enable gauge calibration on AXP228. To use it:
 
