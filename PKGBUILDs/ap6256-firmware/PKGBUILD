@@ -1,0 +1,40 @@
+# adapted from package from Manjaro community
+# all firmwares are from RPi's(or related) repository
+
+pkgname=ap6256-firmware
+pkgver=0.1.20231120
+pkgrel=1
+arch=('any')
+pkgdesc='Firmware files for AP6256 WiFi/BT module, BT coex params tweaked, for uConsole'
+license=('unknown')
+depends=()
+source=("BCM4345C5.hcd"
+        'brcmfmac43456-sdio.bin'
+        'brcmfmac43456-sdio.clm_blob'
+        'brcmfmac43456-sdio.txt')
+b2sums=('a654069a983853dd8793f04be73684b9ad005e68088f4ec6598d252aa2bcb121c97f40a4dcb28386d8493aef1f58f25ad45c8d3cb80fe0277380035cd9572803'
+        '687787b8ea958aa31d6ea402d20d8143f467be99243200568d6b9af804ef8ff0e537e1a6b75e0f90259ab80b3ff9735ed6ff0b7f313b5714692fe31d30488e1c'
+        '444f3ba11f9e090835c29ef974b2062a0b8fe80a615f6f5bcbb6ca0d5f28ae95b22575d7d0ed58f097b808319b0c65c02508cf439774d927ab42da7bb6c93667'
+        'fdcf76807b25363d971e0c8b5e3f0c8c0c77ba5d454524cb45804586ba9e1644f100c1d3e32d0be8bea4016fdb90415f85c0fd79530ea94502fd21e72db39865')
+
+package() {
+    # Bluetooth firmware
+    install -D -m 0644 BCM4345C5.hcd -t "${pkgdir}/usr/lib/firmware/brcm"
+
+    # WiFi firmware
+    install -D -m 0644 brcmfmac43456-sdio.bin -t "${pkgdir}/usr/lib/firmware/brcm"
+    install -D -m 0644 brcmfmac43456-sdio.clm_blob -t "${pkgdir}/usr/lib/firmware/brcm"
+    install -D -m 0644 brcmfmac43456-sdio.txt -t "${pkgdir}/usr/lib/firmware/brcm"
+
+    devs=(
+        "raspberrypi,3-compute-module"
+        "raspberrypi,4-compute-module"
+    )
+
+    for dev in "${devs[@]}"
+    do
+        ln -s brcmfmac43456-sdio.txt "${pkgdir}/usr/lib/firmware/brcm/brcmfmac43456-sdio.$dev.txt"
+        ln -s brcmfmac43456-sdio.bin "${pkgdir}/usr/lib/firmware/brcm/brcmfmac43456-sdio.$dev.bin"
+        ln -s brcmfmac43456-sdio.clm_blob "${pkgdir}/usr/lib/firmware/brcm/brcmfmac43456-sdio.$dev.clm_blob"
+    done
+}
