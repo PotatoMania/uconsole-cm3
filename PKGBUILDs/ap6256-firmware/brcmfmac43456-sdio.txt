@@ -98,12 +98,12 @@ fdsslevel_ch11=6
 
 # coex mode, 1: full TDM, 4, BT prioritized, 5: simul
 # firmware sticks to 1, and can only be changed with `wl`
-btc_mode=1
+btc_mode=5
 # bt deferral limit, default 0x4e20/20000
 btc_params8=5000
-# wlam ps mode duaration us, default 0x7530/30000, changed on demand with param 8
-#btc_params1=0x7530
+# wlam ps mode duaration us, default 0x7530/30000, may be changed on demand with param 8
+btc_params1=20000
 # BT priority, default 0x172c/5932
-btc_params50=0x972c
+btc_params50=0xa72c
 # peri mode, default 0x61a8/25000
 btc_params9=40000
