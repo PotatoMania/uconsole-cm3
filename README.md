@@ -47,6 +47,8 @@ They are essentially the same. Only the packaging methods differ. You can build 
 
 kinda lazy ;)
 
+Use [the scripts](https://github.com/PotatoMania/uconsole-cm3-arch-image-builder) to create customized system image, a rebuild of the kernel package might be necessary though.
+
 _And I need time/investment for other personal projects._
 
 ## Notes
