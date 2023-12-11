@@ -1,7 +1,7 @@
-From 6ae39af4a2e868f46cab496adf700fe5bf467c82 Mon Sep 17 00:00:00 2001
+From 72b8a0a7ca153894392d32da4154aff511d85a55 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Sat, 4 Nov 2023 19:02:17 +0800
-Subject: [PATCH 7/7] [DO NOT MERGE] power: axp20x_battery: add calibration
+Subject: [PATCH 6/6] [DO NOT MERGE] power: axp20x_battery: add calibration
  support
 
 - add sysfs interface to initiate calibration
@@ -175,5 +175,5 @@ index 53b53137a480..609d240305a2 100644
  
  	/*
 -- 
-2.42.1
+2.43.0
 

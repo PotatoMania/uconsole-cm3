@@ -1,7 +1,7 @@
-From 7f7a3dcadc423bbd0e113de9cfc8c3124e352751 Mon Sep 17 00:00:00 2001
+From 93ff25bc29c88f057bb739cf55375c924ba40800 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Fri, 20 Oct 2023 23:13:42 +0800
-Subject: [PATCH 4/7] arm: dts: overlays: add uconsole
+Subject: [PATCH 4/6] arm: dts: overlays: add uconsole
 
 This overlay uses customized software i2c, which has the address 3.
 BT serial speed is set to 1500000 to improve stability of both BT and WiFi.
@@ -12,10 +12,10 @@ BT serial speed is set to 1500000 to improve stability of both BT and WiFi.
  create mode 100644 arch/arm/boot/dts/overlays/uconsole.dts
 
 diff --git a/arch/arm/boot/dts/overlays/Makefile b/arch/arm/boot/dts/overlays/Makefile
-index 57e2577c9fc8..166bd5603605 100644
+index 5b1380b55343..8c88f1253d1f 100644
 --- a/arch/arm/boot/dts/overlays/Makefile
 +++ b/arch/arm/boot/dts/overlays/Makefile
-@@ -280,6 +280,7 @@ dtbo-$(CONFIG_ARCH_BCM2835) += \
+@@ -281,6 +281,7 @@ dtbo-$(CONFIG_ARCH_BCM2835) += \
  	uart4.dtbo \
  	uart4-pi5.dtbo \
  	uart5.dtbo \
@@ -396,5 +396,5 @@ index 000000000000..931128d83793
 +	status = "disabled";
 +};
 -- 
-2.42.1
+2.43.0
 

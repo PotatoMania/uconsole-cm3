@@ -1,13 +1,13 @@
-From 52976801106b3349dcd1188a298ab6509fa9e5b6 Mon Sep 17 00:00:00 2001
+From 375f13d96b204caffdfc7efc552be5949aacaf83 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Fri, 20 Oct 2023 23:18:19 +0800
-Subject: [PATCH 2/7] drm: panel: add clockwork cwu50
+Subject: [PATCH 2/6] drm: panel: add clockwork cwu50
 
 ---
  drivers/gpu/drm/panel/Kconfig                 |  12 +
  drivers/gpu/drm/panel/Makefile                |   1 +
- drivers/gpu/drm/panel/panel-clockwork-cwu50.c | 538 ++++++++++++++++++
- 3 files changed, 551 insertions(+)
+ drivers/gpu/drm/panel/panel-clockwork-cwu50.c | 551 ++++++++++++++++++
+ 3 files changed, 564 insertions(+)
  create mode 100644 drivers/gpu/drm/panel/panel-clockwork-cwu50.c
 
 diff --git a/drivers/gpu/drm/panel/Kconfig b/drivers/gpu/drm/panel/Kconfig
@@ -47,10 +47,10 @@ index bc4ded65aa4b..25d9c19d9cd0 100644
  obj-$(CONFIG_DRM_PANEL_SIMPLE) += panel-simple.o
 diff --git a/drivers/gpu/drm/panel/panel-clockwork-cwu50.c b/drivers/gpu/drm/panel/panel-clockwork-cwu50.c
 new file mode 100644
-index 000000000000..1f60208038ea
+index 000000000000..575ab2b49935
 --- /dev/null
 +++ b/drivers/gpu/drm/panel/panel-clockwork-cwu50.c
-@@ -0,0 +1,538 @@
+@@ -0,0 +1,551 @@
 +/*
 + * SPDX-License-Identifier: GPL-2.0+
 + * Copyright (c) 2021 Clockwork Tech LLC
@@ -339,29 +339,42 @@ index 000000000000..1f60208038ea
 +{
 +	struct cwu50 *ctx = panel_to_cwu50(panel);
 +	struct mipi_dsi_device *dsi = to_mipi_dsi_device(ctx->dev);
-+	int err;
++	int err, had_error;
++
++	/* Power off the display using case 2 described in JD9365D.pdf chapter 9.5.3. */
 +
 +	if (!ctx->prepared)
 +		return 0;
 +
++	/* tCMD_OFF >= 1ms */
++	msleep(1);
++
 +	err = mipi_dsi_dcs_set_display_off(dsi);
 +	if (err) {
-+		dev_err(ctx->dev, "failed to turn display off (%d)\n", err);
-+		return err;
++		dev_warn(ctx->dev, "failed to send display off command (%d)\n", err);
++		had_error |= err;
 +	}
++
++	/* tDISOFF >= 50ms */
++	msleep(50);
 +
 +	err = mipi_dsi_dcs_enter_sleep_mode(dsi);
 +	if (err) {
-+		dev_err(ctx->dev, "failed to enter sleep mode (%d)\n", err);
-+		return err;
++		dev_warn(ctx->dev, "failed to enter sleep mode (%d)\n", err);
++		had_error |= err;
 +	}
 +
 +	/* tSLPIN >= 100ms */
-+	msleep(120);
++	msleep(100);
 +
 +	gpiod_set_value_cansleep(ctx->reset_gpio, 1); /* assert reset */
 +
-+	msleep(10);
++	/* in case of error, fall back to case 1 */
++	if (had_error) {
++		dev_warn(ctx->dev, "falling back to power off case 1 using HW reset line");
++		/* tRSTOFF1 >= 120ms */
++		msleep(120);
++	}
 +
 +	regulator_disable(ctx->vci);
 +	regulator_disable(ctx->iovcc);
@@ -590,5 +603,5 @@ index 000000000000..1f60208038ea
 +MODULE_DESCRIPTION("ClockworkPi CWU50 panel driver");
 +MODULE_LICENSE("GPL v2");
 -- 
-2.42.1
+2.43.0
 

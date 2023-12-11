@@ -1,7 +1,7 @@
-From 31d8d1fb1e106a68ef90f6c44571477f122e4bee Mon Sep 17 00:00:00 2001
+From be51bd36c88b95a8902f585dcc2bfebcaac2ab41 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Mon, 2 Oct 2023 15:14:09 +0800
-Subject: [PATCH 1/7] video: backlight: Add OCP8178 backlight driver
+Subject: [PATCH 1/6] video: backlight: Add OCP8178 backlight driver
 
 This driver is taken from
 https://github.com/clockworkpi/DevTerm/blob/main/Code/patch/armbian_build_a06/patch/kernel-005-backlight.patch
@@ -291,5 +291,5 @@ index 000000000000..2b0d1b159500
 +MODULE_DESCRIPTION("OCP8178 Driver");
 +MODULE_LICENSE("GPL");
 -- 
-2.42.1
+2.43.0
 
