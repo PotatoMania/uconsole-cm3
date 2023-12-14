@@ -93,8 +93,8 @@ cat /sys/class/power_supply/axp20x-battery/calibrate
 cat /sys/class/power_supply/axp20x-battery/energy_full
 ```
 
+It's possible to manipulate the PMU directly with `i2c-tools`. In this case, the driver `i2c_dev` should be loaded with modprobe/insmod.
+
 ### DSI panel
 
-~~Sometimes the screen will stay black. This is because a data transfer timeout. It rarely occurs and can be fixed with a reboot.~~ This could result from the PMU I2C communication issue(especially with I2C0 on RPi3 series), and is resolved by using bitbang I2C driver.
-
-Kernel will spit error messages about failed to turn off the panel. It's harmless as far as I can tell.
+Sometimes the screen will stay black. This is because a data transfer timeout and the LCD is not initialized. It rarely occurs and can be fixed by blanking & unblanking the screen. There seems a bug for the driver `vc4_dsi`, see issue 4323 in raspberrypi/linux. Currently a few workarounds are required to fully eliminate this issue.
