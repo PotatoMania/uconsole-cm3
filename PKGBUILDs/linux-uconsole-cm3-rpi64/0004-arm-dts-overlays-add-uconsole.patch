@@ -1,7 +1,7 @@
-From a0e52a8dce232d12cf3cbc816e2f0527c1c6e202 Mon Sep 17 00:00:00 2001
+From 08bddf942ca87d73f9df8264efb8555bbe52c508 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Fri, 20 Oct 2023 23:13:42 +0800
-Subject: [PATCH 4/6] arm: dts: overlays: add uconsole
+Subject: [PATCH 4/7] arm: dts: overlays: add uconsole
 
 This overlay uses customized software i2c, which has the address 3.
 BT serial speed is set to 1500000 to improve stability of both BT and WiFi.
