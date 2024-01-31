@@ -1,15 +1,15 @@
-From aa593278d760e468f79e2c785a96b7b049653a2e Mon Sep 17 00:00:00 2001
+From f44e58b994d6732753da98440d5aa69bd7fc8605 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Fri, 20 Oct 2023 23:18:19 +0800
-Subject: [PATCH 2/6] drm: panel: add clockwork cwu50
+Subject: [PATCH 2/7] drm: panel: add clockwork cwu50
 
 - set `power_off_case` to 2(other than 1) to enable power off by
   DCS command
 ---
  drivers/gpu/drm/panel/Kconfig                 |  12 +
  drivers/gpu/drm/panel/Makefile                |   1 +
- drivers/gpu/drm/panel/panel-clockwork-cwu50.c | 567 ++++++++++++++++++
- 3 files changed, 580 insertions(+)
+ drivers/gpu/drm/panel/panel-clockwork-cwu50.c | 573 ++++++++++++++++++
+ 3 files changed, 586 insertions(+)
  create mode 100644 drivers/gpu/drm/panel/panel-clockwork-cwu50.c
 
 diff --git a/drivers/gpu/drm/panel/Kconfig b/drivers/gpu/drm/panel/Kconfig
@@ -49,10 +49,10 @@ index bc4ded65aa4b..25d9c19d9cd0 100644
  obj-$(CONFIG_DRM_PANEL_SIMPLE) += panel-simple.o
 diff --git a/drivers/gpu/drm/panel/panel-clockwork-cwu50.c b/drivers/gpu/drm/panel/panel-clockwork-cwu50.c
 new file mode 100644
-index 000000000000..a814d6bb25dd
+index 000000000000..8eb7ec1afcbe
 --- /dev/null
 +++ b/drivers/gpu/drm/panel/panel-clockwork-cwu50.c
-@@ -0,0 +1,567 @@
+@@ -0,0 +1,573 @@
 +/*
 + * SPDX-License-Identifier: GPL-2.0+
 + * Copyright (c) 2021 Clockwork Tech LLC
@@ -423,20 +423,25 @@ index 000000000000..a814d6bb25dd
 +
 +	/* tPWON>= 0ms */
 +
++	/* MIPI should change to LP-11 after turning on vci according to JD9365D.pdf */
 +	err = regulator_enable(ctx->vci);
 +	if (err) {
 +		dev_err(ctx->dev, "failed to enable vci (%d)\n", err);
 +		goto disable_iovcc;
 +	}
 +
++	/* Wait for MIPI to initialize
++	 * tRPWIRES >= 5ms
++	 * 0 <= tMIPI_ON <= tRPWIRES
++	 */
++	msleep(30);
++
 +	/* MIPI should be LP-11 now */
-+	/* tRPWIRES >= 5ms */
-+	msleep(10);
 +
 +	/* tRESETL=10us */
 +	/* tRESETH >= 5ms */
 +	gpiod_set_value_cansleep(ctx->reset_gpio, 0); /* deassert */
-+	msleep(10);
++	msleep(5);
 +
 +	/* Exit sleep mode and power on */
 +
@@ -469,7 +474,7 @@ index 000000000000..a814d6bb25dd
 +	// err = mipi_dsi_dcs_set_tear_on(dsi, MIPI_DSI_DCS_TEAR_MODE_VBLANK);
 +	if (err < 0) {
 +		dev_err(ctx->dev, "failed to enable vblank TE (%d)\n", err);
-+		return err;
++		goto disable_vci;
 +	}
 +
 +	err = mipi_dsi_dcs_get_power_mode(dsi, &response);
@@ -485,6 +490,7 @@ index 000000000000..a814d6bb25dd
 +	regulator_disable(ctx->vci);
 +disable_iovcc:
 +	regulator_disable(ctx->iovcc);
++	gpiod_set_value_cansleep(ctx->reset_gpio, 1);
 +	return err;
 +}
 +

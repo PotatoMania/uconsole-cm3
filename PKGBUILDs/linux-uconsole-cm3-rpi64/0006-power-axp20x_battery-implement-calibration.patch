@@ -1,7 +1,7 @@
-From 64524afd6b6598addcf77c92832abdcd508fc8b4 Mon Sep 17 00:00:00 2001
+From 1f788ca85b59d335eb0b193f5e3bce91dc441739 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Sat, 4 Nov 2023 19:02:17 +0800
-Subject: [PATCH 6/6] power: axp20x_battery: implement calibration
+Subject: [PATCH 6/7] power: axp20x_battery: implement calibration
 
 - add sysfs interface to initiate calibration
 - capacity/energy is read from PMU rather than using a predefined value

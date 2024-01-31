@@ -1,0 +1,100 @@
+From fe4b71c5e8af9a9d7d24193f5d7ca9a3df8ef1c3 Mon Sep 17 00:00:00 2001
+From: Potato <nikko@faint.day>
+Date: Wed, 13 Dec 2023 13:32:33 +0800
+Subject: [PATCH 7/7] drm: panel: cwu50: expose dsi error status to userspace
+ via sysfs
+
+---
+ drivers/gpu/drm/panel/panel-clockwork-cwu50.c | 41 ++++++++++++++++++-
+ 1 file changed, 40 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/panel/panel-clockwork-cwu50.c b/drivers/gpu/drm/panel/panel-clockwork-cwu50.c
+index 8eb7ec1afcbe..486441e9df8a 100644
+--- a/drivers/gpu/drm/panel/panel-clockwork-cwu50.c
++++ b/drivers/gpu/drm/panel/panel-clockwork-cwu50.c
+@@ -27,6 +27,31 @@ struct cwu50 {
+ 	struct gpio_desc *reset_gpio;
+ 	enum drm_panel_orientation orientation;
+ 	bool prepared;
++	int dsi_status; // 0: ok, 1: error
++	bool sysfs_node_created;
++};
++
++static ssize_t dsi_state_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct mipi_dsi_device *dsi = to_mipi_dsi_device(dev);
++	struct cwu50 *ctx = mipi_dsi_get_drvdata(dsi);
++
++	if (!ctx->dsi_status)
++		return scnprintf(buf, PAGE_SIZE, "ok\n");
++	else
++		return scnprintf(buf, PAGE_SIZE, "error\n");
++}
++
++static DEVICE_ATTR(dsi_state, 0444, dsi_state_show, NULL);
++
++static struct attribute *dsi_state_attrs[] = {
++	&dev_attr_dsi_state.attr,
++	NULL
++};
++
++static const struct attribute_group dsi_attr_group = {
++	.attrs = dsi_state_attrs,
+ };
+ 
+ static const struct drm_display_mode default_mode = {
+@@ -363,7 +388,7 @@ static int cwu50_prepare(struct drm_panel *panel)
+ 	err = regulator_enable(ctx->iovcc);
+ 	if (err) {
+ 		dev_err(ctx->dev, "failed to enable iovcc (%d)\n", err);
+-		return err;
++		goto error_finialize;
+ 	}
+ 
+ 	/* tPWON>= 0ms */
+@@ -429,13 +454,16 @@ static int cwu50_prepare(struct drm_panel *panel)
+ 	}
+ 
+ 	ctx->prepared = true;
++	ctx->dsi_status = 0;  // ok
+ 
+ 	return 0;
+ disable_vci:
+ 	regulator_disable(ctx->vci);
+ disable_iovcc:
+ 	regulator_disable(ctx->iovcc);
++error_finialize:
+ 	gpiod_set_value_cansleep(ctx->reset_gpio, 1);
++	ctx->dsi_status = 1;
+ 	return err;
+ }
+ 
+@@ -542,6 +570,13 @@ static int cwu50_probe(struct mipi_dsi_device *dsi)
+ 		return err;
+ 	}
+ 
++	err = sysfs_create_group(&dsi->dev.kobj, &dsi_attr_group);
++	if (err < 0) {
++		dev_warn(dev, "Cannot create optional sysfs nodes: %d\n", err);
++	} else {
++		ctx->sysfs_node_created = true;
++	}
++
+ 	return 0;
+ }
+ 
+@@ -549,6 +584,10 @@ static void cwu50_remove(struct mipi_dsi_device *dsi)
+ {
+ 	struct cwu50 *ctx = mipi_dsi_get_drvdata(dsi);
+ 
++	if (ctx->sysfs_node_created) {
++		sysfs_remove_group(&dsi->dev.kobj, &dsi_attr_group);
++	}
++
+ 	mipi_dsi_detach(dsi);
+ 	drm_panel_remove(&ctx->panel);
+ }
+-- 
+2.43.0
+
