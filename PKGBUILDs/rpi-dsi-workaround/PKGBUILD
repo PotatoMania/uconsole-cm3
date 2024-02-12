@@ -1,0 +1,21 @@
+#
+
+pkgname=rpi-dsi-workaround
+pkgver=0.1.1
+pkgrel=1
+arch=('any')
+pkgdesc="Scripts to workaround RPi's DSI bug"
+license=('unknown')
+depends=()
+source=('rpi-dsi-check'
+        'rpi-dsi-workaround.service')
+b2sums=('de5fed3b44e93ceb5ff96d77c845115470b86b4554705c1107447e15d28a8220b27737726b6ce1df267c80583eeeb1b2dcd8c36f8684b95fc4adc263da211396'
+        '3d3728cb8245364cf74617a5967d99ba53e414a24b0bd84eba73e5712504c1fc41e3cd676e512431198f3489592c4da5f8365302d022705aa2067ef3c9aba78a')
+
+package() {
+    # util scripts
+    install -D -m 0755 rpi-dsi-check -t "${pkgdir}/usr/lib/rpi-dsi-workaround/"
+
+    # service scripts
+    install -D -m 0644 rpi-dsi-workaround.service -t "${pkgdir}/usr/lib/systemd/system"
+}
