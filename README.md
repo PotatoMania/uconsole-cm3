@@ -33,6 +33,8 @@ I've successfully adapted the uConsole patches to CM3. I've even written a new k
 
 Raise issue if you have any problems.
 
+It's reported that CM4's WiFi won't work if using the kernel package in this repo.
+
 ## How to install ArchLinux on uConsole/CM3 from scratch
 
 Please read [the guide in doc(still draft)](doc/how-to-install-archlinux-from-scratch.md).
@@ -55,7 +57,7 @@ _And I need time/investment for other personal projects._
 
 ### WiFi & BT
 
-Because of the operation voltage(3.3V by default), the WiFi part of the wireless module cannot run at its highest speed. But it should be enough.
+Because of the operation voltage(3.3V by default) and RPi's limit, the WiFi part of the wireless module cannot run at its highest speed. But it should be enough.
 
 BT serial speed will affect module's wireless performance. Just a note.
 
@@ -64,15 +66,13 @@ For Arch users: there's a [firmware package](https://gitlab.manjaro.org/manjaro-
 BT & WiFi coexistence may need further tweaking. When there's traffic over 2.4G WiFi, BT audio will stutter. Read [this post](https://community.infineon.com/t5/AIROC-Wi-Fi-and-Wi-Fi-Bluetooth/Bluetooth-audio-streaming-WiFi-inteference/td-p/379269) for available parameters. I failed to make BT audio stable with 2.4G WiFi. One workaround is soft-blocking WiFi using rfkill, or use 5G WiFi only.
 Contributions welcomed.
 
-__THIS IS NOT TESTED__: If you want to experiment with higher speed, you might want to change the jumpers(ZERO Ohm resistors) on the main board. Then you need to modify the device tree overlay to adjust the corresponding voltage.
-
 ### 4G/LTE modem
 
 On uConsole with CM3, the official LTE modem will __ALWAYS__ be powered up on boot because the initial pulls of the pins.
 
 ### PMU/Power control
 
-~~When plugged in, the system might not able to fully shutdown itself.~~ This is no longer a problem. This originates from I2C0's issue on RPi3 series. Some how the communication will fail if hardware I2C0 is used.
+~~When plugged in, the system might not able to fully shutdown itself.~~ This is no longer a problem. This originates from I2C0's issue on RPi3 series. Somehow the communication will fail if hardware I2C0 is used.
 
 The power button is the system power button, that means you can shutdown your uConsole just by clicking the power button.
 
@@ -97,4 +97,6 @@ It's possible to manipulate the PMU directly with `i2c-tools`. In this case, the
 
 ### DSI panel
 
-Sometimes the screen will stay black. This is because a data transfer timeout and the LCD is not initialized. It rarely occurs and can be fixed by blanking & unblanking the screen. There seems a bug for the driver `vc4_dsi`, see issue 4323 in raspberrypi/linux. Currently a few workarounds are required to fully eliminate this issue.
+Sometimes the screen will stay black. This is because a data transfer timeout and the LCD is not initialized. It occurs with about 10% chance when screen(and DSI bus) is fully reseted and can be fixed by doing another reset. There seems a bug for the driver `vc4_dsi`, see issue 4323 in raspberrypi/linux. Currently a few workarounds are required to fully eliminate this issue.
+
+For ArchLinux users, you can try `rpi-dsi-workaround` in PKGBUILDs. Install the package and enable the service `rpi-dsi-workaround.service` to start it at boot. The workaround checks the DSI bus's state every 60 seconds, and reset the screen if an error is found. This feature requires latest patch set from `linux-uconsole-cm3-rpi64`.
