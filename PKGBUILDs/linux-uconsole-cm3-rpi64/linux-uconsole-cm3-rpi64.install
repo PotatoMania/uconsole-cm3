@@ -13,10 +13,12 @@ post_install() {
   if ! grep "uconsole" /boot/config.txt &>/dev/null
   then
     echo "\
-NOTICE: You might want to modify /boot/config.txt and add following content:
+# NOTICE: You might want to modify /boot/config.txt and add following content:
+[all]
 ignore_lcd=1
 disable_fw_kms_setup=1
 disable_audio_dither
+pwm_sample_bits=20
 
 # setup headphone detect pin
 gpio=10=ip,np
@@ -26,12 +28,23 @@ kernel=Image.gz
 arm_64bit=1
 initramfs initramfs-linux.img followkernel
 
-# overlays
+[all]
 dtoverlay=dwc2,dr_mode=host
-dtoverlay=vc4-kms-v3d
 dtoverlay=audremap,pins_12_13
 dtparam=audio=on
+
+[pi3]
+dtoverlay=vc4-kms-v3d
 dtoverlay=uconsole
+
+[cm4]
+arm_boost=1
+max_framebuffers=2
+dtoverlay=vc4-kms-v3d-pi4
+dtoverlay=uconsole,cm4
+
+[all]
+# whatever you need
 "
   fi
 }

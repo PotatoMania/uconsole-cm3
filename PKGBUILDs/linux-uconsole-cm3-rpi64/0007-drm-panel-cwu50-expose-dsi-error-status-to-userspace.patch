@@ -1,4 +1,4 @@
-From fe4b71c5e8af9a9d7d24193f5d7ca9a3df8ef1c3 Mon Sep 17 00:00:00 2001
+From 8523aa74a278ab19f2e8abb5a44a2fd417addc7f Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Wed, 13 Dec 2023 13:32:33 +0800
 Subject: [PATCH 7/7] drm: panel: cwu50: expose dsi error status to userspace

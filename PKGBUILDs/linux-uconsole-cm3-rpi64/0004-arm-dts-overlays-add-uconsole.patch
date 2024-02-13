@@ -1,18 +1,21 @@
-From 08bddf942ca87d73f9df8264efb8555bbe52c508 Mon Sep 17 00:00:00 2001
+From 705f942147a59c1d85c2e094cbac4477e6220cc0 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Fri, 20 Oct 2023 23:13:42 +0800
 Subject: [PATCH 4/7] arm: dts: overlays: add uconsole
 
 This overlay uses customized software i2c, which has the address 3.
 BT serial speed is set to 1500000 to improve stability of both BT and WiFi.
+
+The overlay is updated to support CM4. It accepts a parameter `cm4`, to
+disable fragments for CM3.
 ---
  arch/arm/boot/dts/overlays/Makefile     |   1 +
- arch/arm/boot/dts/overlays/uconsole.dts | 366 ++++++++++++++++++++++++
- 2 files changed, 367 insertions(+)
+ arch/arm/boot/dts/overlays/uconsole.dts | 381 ++++++++++++++++++++++++
+ 2 files changed, 382 insertions(+)
  create mode 100644 arch/arm/boot/dts/overlays/uconsole.dts
 
 diff --git a/arch/arm/boot/dts/overlays/Makefile b/arch/arm/boot/dts/overlays/Makefile
-index faebe83cf76d..bd2026a0db93 100644
+index fc97bdb71e80..db5997208662 100644
 --- a/arch/arm/boot/dts/overlays/Makefile
 +++ b/arch/arm/boot/dts/overlays/Makefile
 @@ -282,6 +282,7 @@ dtbo-$(CONFIG_ARCH_BCM2835) += \
@@ -25,10 +28,10 @@ index faebe83cf76d..bd2026a0db93 100644
  	upstream.dtbo \
 diff --git a/arch/arm/boot/dts/overlays/uconsole.dts b/arch/arm/boot/dts/overlays/uconsole.dts
 new file mode 100644
-index 000000000000..931128d83793
+index 000000000000..2b1c8a884d5b
 --- /dev/null
 +++ b/arch/arm/boot/dts/overlays/uconsole.dts
-@@ -0,0 +1,366 @@
+@@ -0,0 +1,381 @@
 +/dts-v1/;
 +/plugin/;
 +
@@ -43,10 +46,6 @@ index 000000000000..931128d83793
 +		target-path = "/aliases";
 +		__overlay__ {
 +			i2c_uconsole = "/i2c@0";
-+			mmc1 = "/soc/mmc@7e300000";
-+			/* switch 0&1, I don't know why not use a cmdline parameter instead */
-+			serial1 = "/soc/serial@7e201000";
-+			serial0 = "/soc/serial@7e215040";
 +		};
 +	};
 +
@@ -60,7 +59,12 @@ index 000000000000..931128d83793
 +	fragment@80 {
 +		target-path = "/chosen";
 +		__overlay__ {
-+			bootargs = "snd_bcm2835.enable_headphones=1";
++			/* The bluetooth module need uart0/serial0, so must ensure console doesn't take up the serial port.
++			 * Somehow newer kernel uses serial as the default console, which must be avoided.
++			   Set console=tty1 ensures everything go to the DSI screen(or maybe HDMI). */
++			bootargs = "snd_bcm2835.enable_headphones=1 console=tty1";
++			/* 8250 auxiliary UART instead of pl011, which is used by Bluetooth */
++			stdout-path = "serial1:115200n8";
 +		};
 +	};
 +
@@ -117,6 +121,71 @@ index 000000000000..931128d83793
 +			// 	vin-supply = <&usb_power_supply>;
 +			// };
 +		};
++	};
++
++	fragment@91 {
++		/* BT */
++		target = <&uart0>;
++		__overlay__ {
++			pinctrl-names = "default";
++			pinctrl-0 = <&uart0_pins &bt_pins>;
++			status = "okay";
++
++			bt: bluetooth {
++				compatible = "brcm,bcm4345c5";
++				interrupt-parent = <&gpio>;
++				interrupts = <6 4>; /* GPIO6, IRQ_TYPE_LEVEL_HIGH */
++				interrupt-names = "host-wake";
++				device-wakeup-gpios = <&gpio 7 0>; /* GPIO7, GPIO_ACTIVE_HIGH */
++				brcm,requires-autobaud-mode;
++				shutdown-gpios = <&gpio 5 0>; /* GPIO5, GPIO_ACTIVE_HIGH */
++				/* max-speed: datasheet shows max speed is 4000000,
++				* however, approperate speed must be set to ensure overall wireless performance.
++				*/
++				max-speed = <1500000>;
++				vbat-supply = <&reg_dldo1>;
++				vddio-supply = <&reg_aldo3>;
++			};
++		};
++	};
++
++	fragment@92 {
++		/* WLAN */
++		/* The general purpose SDHCI interface(SD1) */
++		target = <&mmc>;
++		__overlay__ {
++			pinctrl-0 = <&sdio_gpio22>;
++			pinctrl-names = "default";
++			mmc-pwrseq = <&wifi_pwrseq>;
++			// non-removable; /* don't use this, so the chip can be reliably initialized */
++			bus-width = <4>;
++			status = "okay";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			vmmc-supply = <&reg_dldo1>;
++			vqmmc-supply = <&reg_aldo3>;
++
++			brcmf: wifi@1 {
++				reg = <1>;
++				compatible = "brcm,bcm43456-fmac", "brcm,bcm4329-fmac";
++				/* The interrupt will not registered on CM3, so skip below */
++				// interrupt-parent = <&gpio>;
++				// interrupts = <4 8>; /* GPIO4, IRQ_TYPE_LEVEL_LOW */
++				// interrupt-names = "host-wake";
++			};
++		};
++	};
++
++	fragment@93 {
++		/* disable the mmc interface without polling */
++		target = <&mmcnr>;
++		__overlay__ {
++			status = "disabled";
++		};
++	};
++
++	__overrides__ {
++		cm4 = <0>,"-91-92-93"; // disable BT, WiFi on uConsole main board, and other fixes for CM3
 +	};
 +};
 +
@@ -343,57 +412,6 @@ index 000000000000..931128d83793
 +			};
 +		};
 +	};
-+};
-+
-+/* BT */
-+&uart0 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&uart0_pins &bt_pins>;
-+	status = "okay";
-+
-+	bt: bluetooth {
-+		compatible = "brcm,bcm4345c5";
-+		interrupt-parent = <&gpio>;
-+		interrupts = <6 4>; /* GPIO6, IRQ_TYPE_LEVEL_HIGH */
-+		interrupt-names = "host-wake";
-+		device-wakeup-gpios = <&gpio 7 0>; /* GPIO7, GPIO_ACTIVE_HIGH */
-+		brcm,requires-autobaud-mode;
-+		shutdown-gpios = <&gpio 5 0>; /* GPIO5, GPIO_ACTIVE_HIGH */
-+		/* max-speed: datasheet shows max speed is 4000000,
-+		 * however, approperate speed must be set to ensure overall wireless performance.
-+		 */
-+		max-speed = <1500000>;
-+		vbat-supply = <&reg_dldo1>;
-+		vddio-supply = <&reg_aldo3>;
-+	};
-+};
-+
-+/* WLAN */
-+/* The general purpose SDHCI interface(SD1) */
-+&mmc {
-+	pinctrl-0 = <&sdio_gpio22>;
-+	pinctrl-names = "default";
-+	mmc-pwrseq = <&wifi_pwrseq>;
-+	// non-removable; /* don't use this, so the chip can be reliably initialized */
-+	bus-width = <4>;
-+	status = "okay";
-+	#address-cells = <1>;
-+	#size-cells = <0>;
-+	vmmc-supply = <&reg_dldo1>;
-+	vqmmc-supply = <&reg_aldo3>;
-+
-+	brcmf: wifi@1 {
-+		reg = <1>;
-+		compatible = "brcm,bcm43456-fmac", "brcm,bcm4329-fmac";
-+		/* The interrupt will not registered on CM3, so skip below */
-+		// interrupt-parent = <&gpio>;
-+		// interrupts = <4 8>; /* GPIO4, IRQ_TYPE_LEVEL_LOW */
-+		// interrupt-names = "host-wake";
-+	};
-+};
-+
-+&mmcnr {
-+	status = "disabled";
 +};
 -- 
 2.43.0

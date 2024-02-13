@@ -1,4 +1,4 @@
-From d37eee53a1233d62a65aaa586cf7d3e08c944678 Mon Sep 17 00:00:00 2001
+From d5de446e5004cabcf6d12fed4bcd7a3a788ba0f3 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Mon, 2 Oct 2023 15:14:09 +0800
 Subject: [PATCH 1/7] video: backlight: Add OCP8178 backlight driver
