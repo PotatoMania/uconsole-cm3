@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
+# CM3
 DSI_STATE_FILE=${DSI_STATE_FILE:-/sys/devices/platform/soc/3f700000.dsi/3f700000.dsi.0/dsi_state}
+# CM4
+[ -f DSI_STATE_FILE ] || DSI_STATE_FILE=/sys/devices/platform/soc/fe700000.dsi/fe700000.dsi.0/dsi_state
+
 FB_BLANK_FILE=${FB_BLANK_FILE:-/sys/class/graphics/fb0/blank}
 DAEMON=${DAEMON:-1}
 INTERVAL=${INTERVAL:-60}
