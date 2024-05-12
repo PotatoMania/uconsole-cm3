@@ -1,21 +1,21 @@
-From 5a239c1adbaa6b2f5abeaa56543c5340b975fcf9 Mon Sep 17 00:00:00 2001
+From ce15102d754c4cc8972ec4b1aaa6301d7b66c669 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Wed, 13 Dec 2023 13:32:33 +0800
 Subject: [PATCH 7/7] drm: panel: cwu50: expose dsi error status to userspace
  via sysfs
 
 ---
- drivers/gpu/drm/panel/panel-clockwork-cwu50.c | 41 ++++++++++++++++++-
- 1 file changed, 40 insertions(+), 1 deletion(-)
+ drivers/gpu/drm/panel/panel-clockwork-cwu50.c | 42 ++++++++++++++++++-
+ 1 file changed, 41 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/panel/panel-clockwork-cwu50.c b/drivers/gpu/drm/panel/panel-clockwork-cwu50.c
-index de886b3e0c29..a8016edcac93 100644
+index aef3f587a1f1..f3f689d1e0e3 100644
 --- a/drivers/gpu/drm/panel/panel-clockwork-cwu50.c
 +++ b/drivers/gpu/drm/panel/panel-clockwork-cwu50.c
-@@ -27,6 +27,31 @@ struct cwu50 {
+@@ -26,6 +26,31 @@ struct cwu50 {
+ 	struct regulator *iovcc;
  	struct gpio_desc *reset_gpio;
  	enum drm_panel_orientation orientation;
- 	bool prepared;
 +	int dsi_status; // 0: ok, 1: error
 +	bool sysfs_node_created;
 +};
@@ -44,7 +44,7 @@ index de886b3e0c29..a8016edcac93 100644
  };
  
  static const struct drm_display_mode default_mode = {
-@@ -363,7 +388,7 @@ static int cwu50_prepare(struct drm_panel *panel)
+@@ -354,7 +379,7 @@ static int cwu50_prepare(struct drm_panel *panel)
  	err = regulator_enable(ctx->iovcc);
  	if (err) {
  		dev_err(ctx->dev, "failed to enable iovcc (%d)\n", err);
@@ -53,12 +53,12 @@ index de886b3e0c29..a8016edcac93 100644
  	}
  
  	/* tPWON>= 0ms */
-@@ -429,13 +454,16 @@ static int cwu50_prepare(struct drm_panel *panel)
+@@ -419,12 +444,16 @@ static int cwu50_prepare(struct drm_panel *panel)
+ 		dev_info(ctx->dev, "Read display power mode got: %d", response);
  	}
  
- 	ctx->prepared = true;
 +	ctx->dsi_status = 0;  // ok
- 
++
  	return 0;
  disable_vci:
  	regulator_disable(ctx->vci);
@@ -70,7 +70,7 @@ index de886b3e0c29..a8016edcac93 100644
  	return err;
  }
  
-@@ -542,6 +570,13 @@ static int cwu50_probe(struct mipi_dsi_device *dsi)
+@@ -527,6 +556,13 @@ static int cwu50_probe(struct mipi_dsi_device *dsi)
  		return err;
  	}
  
@@ -84,7 +84,7 @@ index de886b3e0c29..a8016edcac93 100644
  	return 0;
  }
  
-@@ -549,6 +584,10 @@ static void cwu50_remove(struct mipi_dsi_device *dsi)
+@@ -534,6 +570,10 @@ static void cwu50_remove(struct mipi_dsi_device *dsi)
  {
  	struct cwu50 *ctx = mipi_dsi_get_drvdata(dsi);
  
@@ -96,5 +96,5 @@ index de886b3e0c29..a8016edcac93 100644
  	drm_panel_remove(&ctx->panel);
  }
 -- 
-2.44.0
+2.45.0
 

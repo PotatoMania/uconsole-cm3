@@ -1,4 +1,4 @@
-From e41b35c923b93e3c3e67a2bffaf75ed58ce787ba Mon Sep 17 00:00:00 2001
+From 1ec75b6cc01a82c250267efbc3bb7c4a2a220f87 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Fri, 20 Oct 2023 23:18:19 +0800
 Subject: [PATCH 2/7] drm: panel: add clockwork cwu50
@@ -8,8 +8,8 @@ Subject: [PATCH 2/7] drm: panel: add clockwork cwu50
 ---
  drivers/gpu/drm/panel/Kconfig                 |  12 +
  drivers/gpu/drm/panel/Makefile                |   1 +
- drivers/gpu/drm/panel/panel-clockwork-cwu50.c | 573 ++++++++++++++++++
- 3 files changed, 586 insertions(+)
+ drivers/gpu/drm/panel/panel-clockwork-cwu50.c | 558 ++++++++++++++++++
+ 3 files changed, 571 insertions(+)
  create mode 100644 drivers/gpu/drm/panel/panel-clockwork-cwu50.c
 
 diff --git a/drivers/gpu/drm/panel/Kconfig b/drivers/gpu/drm/panel/Kconfig
@@ -49,10 +49,10 @@ index 9dd9b3503802..549180da3e81 100644
  obj-$(CONFIG_DRM_PANEL_SIMPLE) += panel-simple.o
 diff --git a/drivers/gpu/drm/panel/panel-clockwork-cwu50.c b/drivers/gpu/drm/panel/panel-clockwork-cwu50.c
 new file mode 100644
-index 000000000000..de886b3e0c29
+index 000000000000..aef3f587a1f1
 --- /dev/null
 +++ b/drivers/gpu/drm/panel/panel-clockwork-cwu50.c
-@@ -0,0 +1,573 @@
+@@ -0,0 +1,558 @@
 +/*
 + * SPDX-License-Identifier: GPL-2.0+
 + * Copyright (c) 2021 Clockwork Tech LLC
@@ -81,7 +81,6 @@ index 000000000000..de886b3e0c29
 +	struct regulator *iovcc;
 +	struct gpio_desc *reset_gpio;
 +	enum drm_panel_orientation orientation;
-+	bool prepared;
 +};
 +
 +static const struct drm_display_mode default_mode = {
@@ -346,9 +345,6 @@ index 000000000000..de886b3e0c29
 +	struct mipi_dsi_device *dsi = to_mipi_dsi_device(ctx->dev);
 +	int err;
 +
-+	if (!ctx->prepared)
-+		return 0;
-+
 +	/* Power off the display using case 1 described in JD9365D.pdf chapter 9.5.3.
 +	 * module's default behaviour
 +	 */
@@ -397,8 +393,6 @@ index 000000000000..de886b3e0c29
 +	regulator_disable(ctx->vci);
 +	regulator_disable(ctx->iovcc);
 +
-+	ctx->prepared = false;
-+
 +	return 0;
 +}
 +
@@ -408,9 +402,6 @@ index 000000000000..de886b3e0c29
 +	struct mipi_dsi_device *dsi = to_mipi_dsi_device(ctx->dev);
 +	int err;
 +	u8 response;
-+
-+	if (ctx->prepared)
-+		return 0;
 +
 +	gpiod_set_value_cansleep(ctx->reset_gpio, 1); /* ensure asserted state */
 +
@@ -482,8 +473,6 @@ index 000000000000..de886b3e0c29
 +		/* debug, normally the command will fail */
 +		dev_info(ctx->dev, "Read display power mode got: %d", response);
 +	}
-+
-+	ctx->prepared = true;
 +
 +	return 0;
 +disable_vci:
@@ -576,10 +565,6 @@ index 000000000000..de886b3e0c29
 +		return err;
 +	}
 +
-+	/* NOTE: this is only available on RPi's fork for the moment
-+	 * Maybe need to move part of the init sequence to cwu50_enable() instead of
-+	 * keeping them in cwu50_prepare().
-+	 */
 +	ctx->panel.prepare_prev_first = true;
 +
 +	drm_panel_init(&ctx->panel, dev, &cwu50_drm_funcs, DRM_MODE_CONNECTOR_DSI);
@@ -627,5 +612,5 @@ index 000000000000..de886b3e0c29
 +MODULE_DESCRIPTION("ClockworkPi CWU50 panel driver");
 +MODULE_LICENSE("GPL v2");
 -- 
-2.44.0
+2.45.0
 

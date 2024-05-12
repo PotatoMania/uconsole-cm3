@@ -1,4 +1,4 @@
-From be0a0bcd7e964bce0a54af213b748b1b3d05ac2c Mon Sep 17 00:00:00 2001
+From e9e641e2b21a7d147fb0e145fc45ef41ebc6466c Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Sat, 4 Nov 2023 19:02:17 +0800
 Subject: [PATCH 6/7] power: axp20x_battery: implement calibration
@@ -174,5 +174,5 @@ index b2d3fd9861fe..74cafe8fbd35 100644
  
  	/*
 -- 
-2.44.0
+2.45.0
 

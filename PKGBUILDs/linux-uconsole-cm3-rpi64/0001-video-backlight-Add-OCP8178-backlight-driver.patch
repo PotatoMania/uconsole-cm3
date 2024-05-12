@@ -1,4 +1,4 @@
-From 0a3031f5fc8f4ea08ded56af4180935762a3fe85 Mon Sep 17 00:00:00 2001
+From ef5e2567c4305929e596133c755b8e1b8e7a4aef Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Mon, 2 Oct 2023 15:14:09 +0800
 Subject: [PATCH 1/7] video: backlight: Add OCP8178 backlight driver
@@ -291,5 +291,5 @@ index 000000000000..2b0d1b159500
 +MODULE_DESCRIPTION("OCP8178 Driver");
 +MODULE_LICENSE("GPL");
 -- 
-2.44.0
+2.45.0
 

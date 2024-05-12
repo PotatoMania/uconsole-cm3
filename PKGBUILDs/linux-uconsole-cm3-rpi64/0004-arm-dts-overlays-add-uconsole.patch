@@ -1,4 +1,4 @@
-From f4a485eaf848ab3335fc408e50d52b2a249e8fde Mon Sep 17 00:00:00 2001
+From bc0666a53c949220cdc9308aa974a81ab9f3724b Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Fri, 20 Oct 2023 23:13:42 +0800
 Subject: [PATCH 4/7] arm: dts: overlays: add uconsole
@@ -13,15 +13,15 @@ The overlay also accepts a parameter `hwi2c` to enable the use of
 hardware I2C, which is buggy on CM3, to control PMU.
 ---
  arch/arm/boot/dts/overlays/Makefile           |   1 +
- .../boot/dts/overlays/uconsole-overlay.dts    | 403 ++++++++++++++++++
- 2 files changed, 404 insertions(+)
+ .../boot/dts/overlays/uconsole-overlay.dts    | 410 ++++++++++++++++++
+ 2 files changed, 411 insertions(+)
  create mode 100644 arch/arm/boot/dts/overlays/uconsole-overlay.dts
 
 diff --git a/arch/arm/boot/dts/overlays/Makefile b/arch/arm/boot/dts/overlays/Makefile
-index 99c536ea4bd8..2eb8d1b9cc1f 100644
+index 86e499122ca9..26485a78c634 100644
 --- a/arch/arm/boot/dts/overlays/Makefile
 +++ b/arch/arm/boot/dts/overlays/Makefile
-@@ -291,6 +291,7 @@ dtbo-$(CONFIG_ARCH_BCM2835) += \
+@@ -293,6 +293,7 @@ dtbo-$(CONFIG_ARCH_BCM2835) += \
  	uart4.dtbo \
  	uart4-pi5.dtbo \
  	uart5.dtbo \
@@ -31,10 +31,10 @@ index 99c536ea4bd8..2eb8d1b9cc1f 100644
  	upstream.dtbo \
 diff --git a/arch/arm/boot/dts/overlays/uconsole-overlay.dts b/arch/arm/boot/dts/overlays/uconsole-overlay.dts
 new file mode 100644
-index 000000000000..27a49483034f
+index 000000000000..ef52bd9ddceb
 --- /dev/null
 +++ b/arch/arm/boot/dts/overlays/uconsole-overlay.dts
-@@ -0,0 +1,403 @@
+@@ -0,0 +1,410 @@
 +/dts-v1/;
 +/plugin/;
 +
@@ -101,7 +101,7 @@ index 000000000000..27a49483034f
 +		};
 +	};
 +
-+	// 91 to 93 are for the on board wireless module
++	// 91 to 94 are for the on board wireless module
 +
 +	fragment@91 {
 +		/* BT */
@@ -164,9 +164,40 @@ index 000000000000..27a49483034f
 +		};
 +	};
 +
-+	// 94-97 handles i2c bus selection
-+
 +	fragment@94 {
++		target = <&gpio>;
++		__overlay__ {
++			sdio_gpio22: sdio_gpio22 {
++				brcm,pins = <22 23 24 25 26 27>;
++				brcm,function = <7>; /* ALT3 = SD1 */
++				brcm,pull = <0 0 0 0 0 0>; /* NP(0)*6, oe NP, PU(2)*5 */
++			};
++
++			/* UART0 with CTS/RTS on GPIO14-17 */
++			uart0_pins: uart0_pins {
++				brcm,pins = <14 15 16 17>;
++				brcm,function = <4 4 7 7>;
++				brcm,pull = <0 2 0 2>;
++			};
++
++			/* bt reset and interrupts */
++			bt_pins: bt_pins {
++				brcm,pins = <5 6 7>;
++				brcm,function = <1 0 1>;
++				brcm,pull = <0 2 0>;
++			};
++
++			wifi_rst_pin: wifi_rst_pin {
++				brcm,pins = <3>;
++				brcm,function = <1>;
++				brcm,pull = <2>;
++			};
++		};
++	};
++
++	// 96-99 handles i2c bus selection
++
++	fragment@96 {
 +		target-path = "/";
 +		__overlay__ {
 +			i2c_uconsole_sw: i2c@100 {
@@ -182,21 +213,21 @@ index 000000000000..27a49483034f
 +		};
 +	};
 +
-+	fragment@95 {
++	fragment@97 {
 +		target = <&i2c0>;
 +		i2c_uconsole_hw0: __dormant__ {
 +			status = "okay";
 +		};
 +	};
 +
-+	fragment@96 {
++	fragment@98 {
 +		target = <&i2c0if>;
 +		__dormant__ {
 +			status = "okay";
 +		};
 +	};
 +
-+	fragment@97 {
++	fragment@99 {
 +		target = <&i2c0mux>;
 +		__dormant__ {
 +			status = "okay";
@@ -355,37 +386,13 @@ index 000000000000..27a49483034f
 +	};
 +
 +	__overrides__ {
-+		cm4 = <0>, "-91-92-93"; // disable BT, WiFi on uConsole main board, and other fixes for CM3
-+		hwi2c = <0>, "-94+95+96+97", // disable SW i2c, enable HW i2c0
++		cm4 = <0>, "-91-92-93-94", // disable BT, WiFi on uConsole main board, and other fixes for CM3
++				<&reg_dldo1>, "regulator-always-on!", // disable ldos for wireless module
++				<&reg_eldo1>, "regulator-always-on!",
++				<&reg_eldo2>, "regulator-always-on!",
++				<&reg_eldo3>, "regulator-always-on!";
++		hwi2c = <0>, "-96+97+98+99", // disable SW i2c, enable HW i2c0
 +				<&frag_pmu>, "target:0=",<&i2c_uconsole_hw0>; // move PMU from sw i2c(3) to hw i2c0
-+	};
-+};
-+
-+&gpio {
-+	sdio_gpio22: sdio_gpio22 {
-+		brcm,pins = <22 23 24 25 26 27>;
-+		brcm,function = <7>; /* ALT3 = SD1 */
-+		brcm,pull = <0 0 0 0 0 0>; /* NP(0)*6, oe NP, PU(2)*5 */
-+	};
-+
-+	/* UART0 with CTS/RTS on GPIO14-17 */
-+	uart0_pins: uart0_pins {
-+		brcm,pins = <14 15 16 17>;
-+		brcm,function = <4 4 7 7>;
-+		brcm,pull = <0 2 0 2>;
-+	};
-+
-+	/* bt reset and interrupts */
-+	bt_pins: bt_pins {
-+		brcm,pins = <5 6 7>;
-+		brcm,function = <1 0 1>;
-+		brcm,pull = <0 2 0>;
-+	};
-+
-+	wifi_rst_pin: wifi_rst_pin {
-+		brcm,pins = <3>;
-+		brcm,function = <1>;
-+		brcm,pull = <2>;
 +	};
 +};
 +
@@ -439,5 +446,5 @@ index 000000000000..27a49483034f
 +	};
 +};
 -- 
-2.44.0
+2.45.0
 

@@ -1,4 +1,4 @@
-From 9d2b9aaeaeda54cab6ccac4a40c41939a6529dc0 Mon Sep 17 00:00:00 2001
+From 849786f31488dba979a0464889bba5581f91e3ae Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Tue, 24 Oct 2023 19:08:18 +0800
 Subject: [PATCH 5/7] drivers: power: axp20x: customize PMU
@@ -94,5 +94,5 @@ index 6ac5c80cfda2..b2d3fd9861fe 100644
  }
  
 -- 
-2.44.0
+2.45.0
 
