@@ -36,8 +36,6 @@ options=('!strip')
 source=("${_srcname}::${_repourl}"
         'config'
         'linux.preset'
-        '60-linux.hook'
-        '90-linux.hook'
         '90-linux-dtbs.hook'
         0001-video-backlight-Add-OCP8178-backlight-driver.patch
         0002-drm-panel-add-clockwork-cwu50.patch
@@ -50,8 +48,6 @@ source=("${_srcname}::${_repourl}"
 b2sums=('SKIP'
         'b74147c983ce63e77e4331be5257845561fab454c6f94cd471031d9160ce6804f750e561a9c0984a415e6fc89a6ac65329b04f308385c5baad3c16a09086f829'
         'd233cc512fd9dec1d7255d3124cda0431c27cb3dd1daeccfc245879fc0b925d072b07e56c14e8e0a63b8849326e70182fb7b4df5d8364de5602d132d3862768d'
-        'c99fe9cf31cffb1bea779d2ee8a0895a533529d073b69e108422e97d01e1ab3c718ce3955bb16003663d33521b02ce926d3c7ecaa7bec4835dab31dbe8391163'
-        'f39994fda3d76407b0af192534ca9931782b3e9de4e438a3adbc7640fc794c261102e5c7bfa1523c291ef8c7256c1106e6dbd40814006329c48d90f51c569e82'
         '94c528624dfa8f1c2d0f8cdda1ba0e2652736f6f635497a5b68170803da64cb516ff3d79607f49a8ea717ca830c35d21b6bee066f173dc7b80317e9e647bd63d'
         '90f3773e08643d7e674a505e4450960116f460271ac01b0d5863c197acd8408f0c10ad06c49fe809d075d5b5700a8cfd490ffc656938bf7381166d0246620b12'
         '8877a834133c464a88fe86c93b0ef1d4d05395c39261134709b8b3a503b77d3176f329a0d7d3ac8e80b13c49d956db80c4560da4953311a1cca3935cc8b4da37'
@@ -188,13 +184,14 @@ _package() {
   sed "${_subst}" ../linux.preset |
     install -Dm644 /dev/stdin "${pkgdir}/etc/mkinitcpio.d/${pkgbase}.preset"
 
-  # install pacman hooks
-  sed "${_subst}" ../60-linux.hook |
-    install -Dm644 /dev/stdin "${pkgdir}/usr/share/libalpm/hooks/60-${pkgbase}.hook"
-  sed "${_subst}" ../90-linux.hook |
-    install -Dm644 /dev/stdin "${pkgdir}/usr/share/libalpm/hooks/90-${pkgbase}.hook"
+  # install extra pacman hooks
   sed "${_subst}" ../90-linux-dtbs.hook |
     install -Dm644 /dev/stdin "${pkgdir}/usr/share/libalpm/hooks/90-${pkgbase}-dtbs.hook"
+
+  # rather than use another hook (90-linux.hook) rely on mkinitcpio's 90-mkinitcpio-install.hook
+  # which avoids a double run of mkinitcpio that can occur
+  install -d "${pkgdir}/usr/lib/initcpio/"
+  echo "dummy file to trigger mkinitcpio to run" > "${pkgdir}/usr/lib/initcpio/$(<version)"
 }
 
 _package-headers() {
