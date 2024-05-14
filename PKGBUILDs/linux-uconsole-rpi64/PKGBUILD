@@ -1,9 +1,9 @@
-# uConsole(CM3)
+# uConsole(RPi CM3/CM4/CM4S)
 # Maintainer: PotatoMania <nikko@faint.day>
 
 buildarch=8
 
-pkgbase=linux-uconsole-cm3-rpi64
+pkgbase=linux-uconsole-rpi64
 pkgver=6.6.y.20240423
 # _majorversion=${pkgver%.*}
 # _subversion=${pkgver##*.}
