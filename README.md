@@ -28,9 +28,12 @@ I started from archlinuxarm's linux-aarch64. ~~It looks like RPi3's mainline sup
         - [x] with 3.5mm jack detection
             - A better virtual sound card mode should be implemented to maintain different volume values for different outputs. But I don't know how. Help wanted.
 - [ ] CM4 support
+    - it's done
     - have no CM4 so cannot test
+    - a forum user reports that everything works with latest code
 - [x] CM4S support
     - tested on a CM4S (CM4S01016B) board, everything works
+    - It's fully compatible with CM3 from a hardware perspective. The software needs a few tweaks.
 - ~~[ ] trim build config~~
 - [ ] setup CI/CD?
 
@@ -39,12 +42,19 @@ I've successfully adapted the uConsole patches to CM3. I've even written a new k
 Raise issue if you have any problems.
 
 It's reported that CM4's WiFi won't work if using the kernel package in this repo.
+It should be fixed in latest code though.
 
 ## How to install ArchLinux on uConsole/CM3 from scratch
 
-Please read [the guide in doc(still draft)](doc/how-to-install-archlinux-from-scratch.md).
+Please read [the guide in doc](doc/how-to-install-archlinux-from-scratch.md)(still draft and possibly will never be updated).
+
+Or read [the scripts](https://github.com/PotatoMania/uconsole-cm3-arch-image-builder) to figure out the procedure.
 
 ## QAs
+
+### How it works?
+
+There exists working bootloader and kernel for RPi. The missing part is the drivers for uConsole. I fixed it through porting CPi's code to latest kernel, and then packaged it for ease of use. That's all, despite that there was some frustrating things during the process.
 
 ### Do you plan to support more OSes?
 
@@ -104,4 +114,4 @@ It's possible to manipulate the PMU directly with `i2c-tools`. In this case, the
 
 Sometimes the screen will stay black. This is because a data transfer timeout and the LCD is not initialized. It occurs with about 10% chance when screen(and DSI bus) is fully reseted and can be fixed by doing another reset. There seems a bug for the driver `vc4_dsi`, see issue 4323 in raspberrypi/linux. Currently a few workarounds are required to fully eliminate this issue.
 
-For ArchLinux users, you can try `rpi-dsi-workaround` in PKGBUILDs. Install the package and enable the service `rpi-dsi-workaround.service` to start it at boot. The workaround checks the DSI bus's state every 60 seconds, and reset the screen if an error is found. This feature requires latest patch set from `linux-uconsole-cm3-rpi64`.
+For ArchLinux users, you can try `rpi-dsi-workaround` in PKGBUILDs. Install the package and enable the service `rpi-dsi-workaround.service` to start it at boot. The workaround checks the DSI bus's state every 60 seconds, and reset the screen if an error is found. This feature requires latest patch set from the package `linux-uconsole-rpi64`.
