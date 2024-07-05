@@ -1,8 +1,6 @@
 # uConsole(RPi CM3/CM4/CM4S)
 # Maintainer: PotatoMania <nikko@faint.day>
 
-buildarch=8
-
 pkgbase=linux-uconsole-rpi64
 pkgver=6.6.y.20240423
 # _majorversion=${pkgver%.*}
@@ -29,13 +27,13 @@ makedepends=(
   python
   tar
   xz
-
-  # base-devel
 )
-options=('!strip')
+options=(
+  !debug
+  !strip
+)
 source=("${_srcname}::${_repourl}"
         'config'
-        'linux.preset'
         '90-linux-dtbs.hook'
         0001-video-backlight-Add-OCP8178-backlight-driver.patch
         0002-drm-panel-add-clockwork-cwu50.patch
@@ -47,8 +45,7 @@ source=("${_srcname}::${_repourl}"
 )
 b2sums=('SKIP'
         'b74147c983ce63e77e4331be5257845561fab454c6f94cd471031d9160ce6804f750e561a9c0984a415e6fc89a6ac65329b04f308385c5baad3c16a09086f829'
-        'd233cc512fd9dec1d7255d3124cda0431c27cb3dd1daeccfc245879fc0b925d072b07e56c14e8e0a63b8849326e70182fb7b4df5d8364de5602d132d3862768d'
-        '94c528624dfa8f1c2d0f8cdda1ba0e2652736f6f635497a5b68170803da64cb516ff3d79607f49a8ea717ca830c35d21b6bee066f173dc7b80317e9e647bd63d'
+        'c0a746f2cc9fa635db97276c5457cd105c860329d03ed21114f52f6a65a9bcdaf462dd46be6d92f72dbb44822b94448273692299f4952187ced448084f72ff51'
         '90f3773e08643d7e674a505e4450960116f460271ac01b0d5863c197acd8408f0c10ad06c49fe809d075d5b5700a8cfd490ffc656938bf7381166d0246620b12'
         '8877a834133c464a88fe86c93b0ef1d4d05395c39261134709b8b3a503b77d3176f329a0d7d3ac8e80b13c49d956db80c4560da4953311a1cca3935cc8b4da37'
         'd673fe225ec89a2efaecc97a5e026913c65fa5a43e16edb21fcbadc0c6fde155edfef6b518078015420336dc93606e07b120ded491545513e2b923e7d6880c39'
@@ -57,43 +54,12 @@ b2sums=('SKIP'
         'ed2a2e851837485d92e877b3da9b467b37ff76220f40c62d271886842d85a96e20711e949702f326b640ec447ee876b25fe3204b8f2ca0c59a3c587d1f30a0f4'
         '9862fe140c3de515f93d4266017f6690735c43f20e2c0e21f472cbf45c8f365412ad0640fb6807dcaae66c5025061794bcbf43c5c827eb615d08050fbf685dc8')
 
+
+
 export KBUILD_BUILD_HOST=archlinux
 export KBUILD_BUILD_USER=$pkgbase
 export KBUILD_BUILD_TIMESTAMP="$(date -Ru${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH})"
 
-### Start to inject code to support cross compile
-# echo "$CARCH"
-if ! uname -m | grep "aarch64"
-then
-  # inject code to makepkg's lib, force current architecture to be aarch64
-  CARCH="aarch64"
-  # tweak flags
-  _MAKE_CROSS_FLAGS=(
-    "CROSS_COMPILE=aarch64-linux-gnu-"
-    "ARCH=arm64"
-    "-j$(nproc)"
-  )
-  _STRIP="aarch64-linux-gnu-strip"
-  # add extra deps
-  makedepends+=("aarch64-linux-gnu-gcc")
-else
-  _MAKE_CROSS_FLAGS=()
-  _STRIP="strip"
-fi
-
-_make1() {
-  make ${MAKEFLAGS} "${_MAKE_CROSS_FLAGS[@]}" "$@"
-}
-
-_make() {
-  test -s version
-  make ${MAKEFLAGS} "${_MAKE_CROSS_FLAGS[@]}" KERNELRELEASE="$(<version)" "$@"
-}
-
-_strip() {
-  $_STRIP "$@"
-}
-### End cross compile support
 
 prepare() {
   cd ${_srcname}
@@ -104,15 +70,16 @@ prepare() {
   echo "Setting version..."
   echo "-$pkgrel" > localversion.10-pkgrel
   echo "${pkgbase#linux}" > localversion.20-pkgname
-  _make1 defconfig
-  _make1 -s kernelrelease > version
-  _make1 mrproper
+  make -s defconfig
+  make -s kernelrelease > version
+  make -s mrproper
 
   # add custom patches
   local src
   for src in "${source[@]}"; do
     src="${src%%::*}"
     src="${src##*/}"
+    src="${src%.zst}"
     [[ $src = *.patch ]] || continue
     echo "Applying patch $src..."
     patch -Np1 < "../$src"
@@ -120,29 +87,24 @@ prepare() {
 
   echo "Setting config..."
   cp ${srcdir}/config .config
-  _make olddefconfig
+  make KERNELRELEASE="$(<version)" olddefconfig
   diff -u ${srcdir}/config .config || :
 
   echo "Prepared $pkgbase version $(<version)"
 }
 
-pkgver() {
-  cat ${_srcname}/version | sed "s/${pkgbase#linux}//; s/^v//; s/-/.r/; s/-g/./; s/-/./"
-}
-
 build() {
   cd ${_srcname}
-
-  # build!
-  unset LDFLAGS
-  _make Image Image.gz modules
-  # Generate device tree blobs with symbols to support applying device tree overlays in U-Boot
-  _make DTC_FLAGS="-@" dtbs
+  make KERNELRELEASE="$(<version)" all
 }
 
 _package() {
   pkgdesc="The Linux Kernel and modules - ${_desc}"
-  depends=('coreutils' 'kmod' 'mkinitcpio>=0.7')
+  depends=(
+    coreutils
+    initramfs
+    kmod
+  )
   optdepends=(
     'wireless-regdb: to set the correct wireless channels of your country'
     'linux-firmware: firmware images needed for some devices'
@@ -152,27 +114,31 @@ _package() {
     'raspberrypi-bootloader: bootloader for RPis'
   )
   provides=(
-    # "linux=${pkgver}"
     "WIREGUARD-MODULE"
   )
-  conflicts=('linux')
-  backup=("etc/mkinitcpio.d/${pkgbase}.preset")
   install=${pkgname}.install
 
   cd $_srcname
   local kernver="$(<version)"
   local modulesdir="$pkgdir/usr/lib/modules/$kernver"
 
-  echo "Installing boot image and dtbs..."
-  install -Dm644 arch/arm64/boot/Image{,.gz} -t "${pkgdir}/boot"
-  _make INSTALL_DTBS_PATH="${pkgdir}/boot/dtbs" dtbs_install
+  echo "Installing boot image..."
+  # systemd expects to find the kernel here to allow hibernation
+  # https://github.com/systemd/systemd/commit/edda44605f06a41fb86b7ab8128dcf99161d2344
+  install -Dm644 "$(make -s image_name)" "$modulesdir/vmlinuz"
+
+  # Used by mkinitcpio to name the kernel
+  echo "$pkgbase" | install -Dm644 /dev/stdin "$modulesdir/pkgbase"
 
   echo "Installing modules..."
-  _make INSTALL_MOD_PATH="$pkgdir/usr" INSTALL_MOD_STRIP=1 \
+  make INSTALL_MOD_PATH="$pkgdir/usr" INSTALL_MOD_STRIP=1 \
     DEPMOD=/doesnt/exist modules_install  # Suppress depmod
 
-  # remove build and source links
-  rm -f "$modulesdir"/{source,build}
+  echo "Installing dtbs..."
+  make INSTALL_DTBS_PATH="$modulesdir/dtb" dtbs_install
+
+  # remove build link
+  rm "$modulesdir"/build
 
   # sed expression for following substitutions
   local _subst="
@@ -180,26 +146,14 @@ _package() {
     s|%KERNVER%|${kernver}|g
   "
 
-  # install mkinitcpio preset file
-  sed "${_subst}" ../linux.preset |
-    install -Dm644 /dev/stdin "${pkgdir}/etc/mkinitcpio.d/${pkgbase}.preset"
-
   # install extra pacman hooks
   sed "${_subst}" ../90-linux-dtbs.hook |
     install -Dm644 /dev/stdin "${pkgdir}/usr/share/libalpm/hooks/90-${pkgbase}-dtbs.hook"
-
-  # rather than use another hook (90-linux.hook) rely on mkinitcpio's 90-mkinitcpio-install.hook
-  # which avoids a double run of mkinitcpio that can occur
-  install -d "${pkgdir}/usr/lib/initcpio/"
-  echo "dummy file to trigger mkinitcpio to run" > "${pkgdir}/usr/lib/initcpio/$(<version)"
 }
 
 _package-headers() {
   pkgdesc="Header files and scripts for building modules for linux kernel - ${_desc}"
-  # provides=(
-  #   # "linux-headers=${pkgver}"
-  # )
-  # conflicts=('linux-headers')
+  depends=(pahole)
 
   cd $_srcname
   local builddir="$pkgdir/usr/lib/modules/$(<version)/build"
@@ -211,8 +165,11 @@ _package-headers() {
   install -Dt "$builddir/arch/arm64" -m644 arch/arm64/Makefile
   cp -t "$builddir" -a scripts
 
-  # add xfs and shmem for aufs building
-  mkdir -p "$builddir"/{fs/xfs,mm}
+  # required when STACK_VALIDATION is enabled
+  # install -Dt "$builddir/tools/objtool" tools/objtool/objtool
+
+  # required when DEBUG_INFO_BTF_MODULES is enabled
+  # install -Dt "$builddir/tools/bpf/resolve_btfids" tools/bpf/resolve_btfids/resolve_btfids
 
   echo "Installing headers..."
   cp -t "$builddir" -a include
@@ -258,28 +215,33 @@ _package-headers() {
   echo "Stripping build tools..."
   local file
   while read -rd '' file; do
-    case "$(file -bi "$file")" in
+    case "$(file -Sib "$file")" in
       application/x-sharedlib\;*)      # Libraries (.so)
-        _strip -v $STRIP_SHARED "$file" ;;
+        strip -v $STRIP_SHARED "$file" ;;
       application/x-archive\;*)        # Libraries (.a)
-        _strip -v $STRIP_STATIC "$file" ;;
+        strip -v $STRIP_STATIC "$file" ;;
       application/x-executable\;*)     # Binaries
-        _strip -v $STRIP_BINARIES "$file" ;;
+        strip -v $STRIP_BINARIES "$file" ;;
       application/x-pie-executable\;*) # Relocatable binaries
-        _strip -v $STRIP_SHARED "$file" ;;
+        strip -v $STRIP_SHARED "$file" ;;
     esac
   done < <(find "$builddir" -type f -perm -u+x ! -name vmlinux -print0)
+
+  echo "Stripping vmlinux..."
+  strip -v $STRIP_STATIC "$builddir/vmlinux"
 
   echo "Adding symlink..."
   mkdir -p "$pkgdir/usr/src"
   ln -sr "$builddir" "$pkgdir/usr/src/$pkgbase"
 }
 
+
 pkgname=("${pkgbase}")
 if uname -m | grep "aarch64"
 then
   pkgname+=("${pkgbase}-headers")
 fi
+
 
 for _p in "${pkgname[@]}"; do
   eval "package_${_p}() {

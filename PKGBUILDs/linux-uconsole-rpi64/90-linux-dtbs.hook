@@ -2,9 +2,9 @@
 Type = File
 Operation = Install
 Operation = Upgrade
-Target = boot/dtbs/*
+Target = usr/lib/modules/%KERNVER%/dtb/*
 
 [Action]
 Description = Updating %PKGBASE% dtbs in /boot...
 When = PostTransaction
-Exec = /usr/bin/sh -c "cp /boot/dtbs/broadcom/bcm*.dtb /boot; cp -r /boot/dtbs/overlays /boot;"
+Exec = /usr/bin/sh -c "cp /usr/lib/modules/%KERNVER%/dtb/broadcom/bcm*.dtb /boot; cp -r /usr/lib/modules/%KERNVER%/dtb/overlays /boot;"
