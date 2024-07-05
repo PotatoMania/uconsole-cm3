@@ -130,10 +130,10 @@ pacman-key --init
 pacman-key --populate archlinuxarm
 # then install packages
 pacman -Sy raspberrypi-bootloader firmware-raspberrypi
-pacman -U --noconfirm linux-uconsole-cm3-rpi64*.pkg.zst
+pacman -U --noconfirm linux-uconsole-rpi64*.pkg.zst
 ```
 
-_Note: preinstalled `linux-aarch64` is uninstalled when installing `linux-uconsole-cm3-rpi64`._
+_Note: you can uninstall the preinstalled `linux-aarch64` since it's not used._
 
 Build and install the AUR package `brcmfmac43456-firmware` to have necessary WiFi firmware installed.
 
@@ -152,11 +152,10 @@ pwm_sample_bits=20
 gpio=10=ip,np
 
 # boot custom kernel
-kernel=Image.gz
+kernel=vmlinuz-linux-uconsole-rpi64
 arm_64bit=1
-initramfs initramfs-linux.img followkernel
+initramfs initramfs-linux-uconsole-rpi64.img followkernel
 
-[all]
 dtoverlay=dwc2,dr_mode=host
 dtoverlay=audremap,pins_12_13
 dtparam=audio=on
