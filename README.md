@@ -56,6 +56,19 @@ Or read [the scripts](https://github.com/PotatoMania/uconsole-cm3-arch-image-bui
 
 There exists working bootloader and kernel for RPi. The missing part is the drivers for uConsole. I fixed it through porting CPi's code to latest kernel, and then packaged it for ease of use. That's all, despite that there was some frustrating things during the process.
 
+### How to cross compile the kernel package?
+
+For arch, a standard way to build a kernel package is calling `makepkg` directly in the folder where `PKGBUILD` sits. If you want to cross compile it, just pass more environment variables, using this command:
+
+```
+makepkg CARCH=aarch64 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-
+```
+
+`CARCH=aarch64` is required to override the host arch detection mechanism in `makepkg`.
+
+When cross compiling, the kernel headers cannot be packaged properly, and just ignore any error about that.
+Kernel headers must be built on the target machine to have the tools compiled for the target.
+
 ### Do you plan to support more OSes?
 
 They are essentially the same. Only the packaging methods differ. You can build your own kernel with patches and config in `PKGBUILDs/linux-uconsole-cm3-rpi64`.
