@@ -2,7 +2,7 @@
 # Maintainer: PotatoMania <nikko@faint.day>
 
 pkgbase=linux-uconsole-rpi64
-pkgver=6.6.y.20240423
+pkgver=6.6.51+g0fb3c83a9fa3
 # _majorversion=${pkgver%.*}
 # _subversion=${pkgver##*.}
 # _srcname=linux-${_majorversion}
@@ -44,7 +44,7 @@ source=("${_srcname}::${_repourl}"
         0007-drm-panel-cwu50-expose-dsi-error-status-to-userspace.patch
 )
 b2sums=('SKIP'
-        'b74147c983ce63e77e4331be5257845561fab454c6f94cd471031d9160ce6804f750e561a9c0984a415e6fc89a6ac65329b04f308385c5baad3c16a09086f829'
+        '381357dad378531c2f9ba6e63247d1454cab7055409ea8c86e243583c14654231e62d2dc28fb20eeceb2a80d4291ebfb71f62d5466b29f528d9b2e2c6db39f35'
         'bf23fa8846d66d358d5bc4f25719dc5adea4cd43837e1c9eb0ff292c03c83951bf02363e8bbf96bbee3fa618d9b8b92a6ff27c65319186ff08677f1d4d74c128'
         '90f3773e08643d7e674a505e4450960116f460271ac01b0d5863c197acd8408f0c10ad06c49fe809d075d5b5700a8cfd490ffc656938bf7381166d0246620b12'
         '8877a834133c464a88fe86c93b0ef1d4d05395c39261134709b8b3a503b77d3176f329a0d7d3ac8e80b13c49d956db80c4560da4953311a1cca3935cc8b4da37'
@@ -91,6 +91,12 @@ prepare() {
   diff -u ${srcdir}/config .config || :
 
   echo "Prepared $pkgbase version $(<version)"
+}
+
+pkgver() {
+	cd "${srcdir}/${_srcname}"	
+	eval $(grep -o "^\(VERSION\|PATCHLEVEL\|SUBLEVEL\) = [0-9a-zA-Z_-]\+" Makefile | tr -d \ )
+	printf "%s.%s.%s+g%s" $VERSION $PATCHLEVEL $SUBLEVEL "$(git rev-parse --short HEAD)"
 }
 
 build() {
