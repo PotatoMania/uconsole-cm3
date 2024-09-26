@@ -119,7 +119,7 @@ genfstab -U /mnt >> /mnt/etc/fstab
 
 _Note: inspect `/mnt/etc/fstab` to make sure no partitions on the host is included._
 
-Copy the package `linux-uconsole-cm3-rpi64`(build it yourself with "/PKGBUILDs/linux-uconsole-cm3-rpi64") to the rootfs(/mnt)
+Copy the package `linux-uconsole-rpi64`(build it yourself with "/PKGBUILDs/linux-uconsole-rpi64") to the rootfs(/mnt)
 
 Enter the rootfs with `arch-chroot` and install the packages:
 
