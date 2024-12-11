@@ -5,8 +5,8 @@ post_upgrade() {
 }
 
 post_remove() {
-  rm -f boot/initramfs-linux.img
-  rm -f boot/initramfs-linux-fallback.img
+  rm -f boot/initramfs-linux-uconsole-rpi64.img
+  rm -f boot/initramfs-linux-uconsole-rpi64-fallback.img
 }
 
 post_install() {
