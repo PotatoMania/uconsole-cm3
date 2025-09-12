@@ -136,24 +136,7 @@ For CM3(RPi3 series), PMU must be controlled with `i2c-gpio` to avoid a hardware
 
 For all cores, the PMU power button is registered as the system power button, which means the uConsole can be shutted down just by clicking the power button.
 
-Since Sun Nov  5 UTC 2023, this repo contains experimental patch to enable gauge calibration on AXP228. To use it:
-
-```bash
-# initialize calibration
-echo 1 | sudo tee /sys/class/power_supply/axp20x-battery/calibrate
-
-# check status
-cat /sys/class/power_supply/axp20x-battery/calibrate
-# BIT(5): feature status, 1 for enabled
-# BIT(4): active state, 1 for active, should be 0 after calibration done
-
-# read current capacity(uWh)
-# This is calculated from original uAh value from PMU reads.
-# It assumes the typical voltage is 3.6V.
-cat /sys/class/power_supply/axp20x-battery/energy_full
-```
-
-It's possible to manipulate the PMU directly with `i2c-tools`. In this case, the driver `i2c_dev` should be loaded with modprobe/insmod.
+Since Fri Sep 12 UTC 2025, this repo remove the patch for gauge calibration. To trigger gauge calibration, a hack is to use `i2c-tools` to manipulate the PMU. In this case, the driver `i2c_dev` should be loaded with modprobe/insmod.
 
 ### DSI panel
 
