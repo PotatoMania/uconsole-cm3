@@ -2,14 +2,14 @@
 # Maintainer: PotatoMania <nikko@faint.day>
 
 pkgbase=linux-uconsole-rpi64
-pkgver=6.6.51+g0fb3c83a9fa3
+pkgver=6.12.y
 # _majorversion=${pkgver%.*}
 # _subversion=${pkgver##*.}
 # _srcname=linux-${_majorversion}
 _desc="uConsole(CM3) kernel package using RPi's fork"
 
 _srcname=linux
-_srcbranch="rpi-6.6.y"
+_srcbranch="rpi-6.12.y"
 _repourl="git+https://github.com/raspberrypi/linux.git#branch=${_srcbranch}"
 
 pkgrel=1
@@ -33,26 +33,22 @@ options=(
   !strip
 )
 source=("${_srcname}::${_repourl}"
-        'config'
         '90-linux-dtbs.hook'
         0001-video-backlight-Add-OCP8178-backlight-driver.patch
         0002-drm-panel-add-clockwork-cwu50.patch
         0003-driver-staging-add-uconsole-simple-amplifier-switch.patch
         0004-arm-dts-overlays-add-uconsole.patch
         0005-drivers-power-axp20x-customize-PMU.patch
-        0006-power-axp20x_battery-implement-calibration.patch
-        0007-drm-panel-cwu50-expose-dsi-error-status-to-userspace.patch
+        0006-drm-panel-cwu50-expose-dsi-error-status-to-userspace.patch
 )
 b2sums=('SKIP'
-        '476f7d94e6f77d6e9e501482daa6fad470e13c9b154c63bceb5090768bf34f1413ea82b280b26510f83d91431c480c894f2c910cfe0c2105cc1d75d1466343ff'
         'bf23fa8846d66d358d5bc4f25719dc5adea4cd43837e1c9eb0ff292c03c83951bf02363e8bbf96bbee3fa618d9b8b92a6ff27c65319186ff08677f1d4d74c128'
-        '90f3773e08643d7e674a505e4450960116f460271ac01b0d5863c197acd8408f0c10ad06c49fe809d075d5b5700a8cfd490ffc656938bf7381166d0246620b12'
-        '8877a834133c464a88fe86c93b0ef1d4d05395c39261134709b8b3a503b77d3176f329a0d7d3ac8e80b13c49d956db80c4560da4953311a1cca3935cc8b4da37'
-        'd673fe225ec89a2efaecc97a5e026913c65fa5a43e16edb21fcbadc0c6fde155edfef6b518078015420336dc93606e07b120ded491545513e2b923e7d6880c39'
-        '5f700d4cc484f6c0577c103c9af278bd9ea53601797bc3f268db8a346fcae9be1e20133dcdf2d3a9f5061cb9304b6b424505ba8c76ae8e6e23e2212206b30dc4'
-        '9e5faf2087b47ffeb50156f9d3e3ea9f7098c1ecc07a596d09d7e38daf32f1d0460fe7b1bdadc7697c4f1448b38c4fe3c92a9a05d350121bbda363f15cc83f35'
-        'ed2a2e851837485d92e877b3da9b467b37ff76220f40c62d271886842d85a96e20711e949702f326b640ec447ee876b25fe3204b8f2ca0c59a3c587d1f30a0f4'
-        '9862fe140c3de515f93d4266017f6690735c43f20e2c0e21f472cbf45c8f365412ad0640fb6807dcaae66c5025061794bcbf43c5c827eb615d08050fbf685dc8')
+        '25c5a134c1883eb986f018f03d998e6729dbac0fea57bc7162569df2e25f9d133e76f11d81dd0fddf0916c8866f2473b4d0535e451103917279ed9a58855b69a'
+        'c03632bc8548715a640a97695884cdd937711528a102bf964dab8159bd04193da91398a1ca34e378338e12be27e82e0bc1fbdc7c7bf9773b1abbe802ac1a8353'
+        '8f5f546903ee8a4ce50f1b94bb8c9de24ce826d851686eac7d560e2d1508bc080ef369aed584c81c7dcf3329c470a7c35726bd51a5c0e4d73e28c10090ded4aa'
+        '2a8ba46589c4f92d8c52baa60ae0b068c5db0321588caa7a7798ebe2ed5bb7005959a634737c6531b76ba47a6ba834cf21d019d8674be631ef39182187264c20'
+        'a56f847f0353a30c193beaf2ae35c64557a9bdf86872ec110218b8b4b76b6066e8172d6d72febfed31c5af8d6b880fce3e90390d33312b38d6dfde956035db25'
+        'f58158d2caa74ddf16e32d35b7fc63988c0ac508044f5a4d438724f894ca045bd758d873b256235a08a6a1f26a634f89bcb781532e4344f1dccdbc523ff2ebe0')
 
 
 
@@ -60,6 +56,27 @@ export KBUILD_BUILD_HOST=archlinux
 export KBUILD_BUILD_USER=$pkgbase
 export KBUILD_BUILD_TIMESTAMP="$(date -Ru${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH})"
 
+_kcfg() {
+  local option=$1
+  local value=$2
+  case "$value" in
+    y)
+      ./scripts/config --enable "$option"
+      ;;
+    n)
+      ./scripts/config --disable "$option"
+      ;;
+    m)
+      ./scripts/config --module "$option"
+      ;;
+    undef)
+      ./scripts/config --undefine "$option"
+      ;;
+    *)
+      ./scripts/config --set-str "$option" "$value"
+      ;;
+  esac
+}
 
 prepare() {
   cd ${_srcname}
@@ -86,22 +103,61 @@ prepare() {
   done
 
   echo "Setting config..."
-  cp ${srcdir}/config .config
+  # cp ${srcdir}/config .config
+  # make KERNELRELEASE="$(<version)" olddefconfig
+  # diff -u ${srcdir}/config .config || :
+  make KERNELRELEASE="$(<version)" bcm2711_defconfig
+
+  # apply customized configs
+  # first, drivers
+  _kcfg INPUT_AXP20X_PEK m
+  _kcfg CHARGER_AXP20X m
+  _kcfg BATTERY_AXP20X m
+  _kcfg AXP20X_POWER m
+  _kcfg MFD_AXP20X m
+  _kcfg MFD_AXP20X_I2C m
+  _kcfg REGULATOR_AXP20X m
+  _kcfg AXP20X_ADC m
+  _kcfg BACKLIGHT_OCP8178 m
+  _kcfg DRM_PANEL_CLOCKWORK_CWU50 m
+  # second, other features
+  _kcfg SECURITY_DMESG_RESTRICT y
+  _kcfg SECURITY_LANDLOCK y
+  _kcfg PROFILING y
+  _kcfg BPF_SYSCALL y
+  _kcfg KPROBE_EVENTS y
+  _kcfg BPF_EVENTS y
+  _kcfg BPF_STREAM_PARSER y
+  _kcfg BPF_LSM y
+  _kcfg LSM "landlock,lockdown,yama,integrity,apparmor,bpf"
+  _kcfg DEBUG_KERNEL y
+  _kcfg DEBUG_INFO y
+  _kcfg DEBUG_INFO_NONE undef
+  _kcfg DEBUG_INFO_REDUCED undef
+  _kcfg DEBUG_INFO_DWARF5 y
+  _kcfg DEBUG_INFO_BTF y
+  _kcfg DEBUG_INFO_BTF_MODULES y
+
+  # make sure it's valid
   make KERNELRELEASE="$(<version)" olddefconfig
-  diff -u ${srcdir}/config .config || :
 
   echo "Prepared $pkgbase version $(<version)"
 }
 
-pkgver() {
-	cd "${srcdir}/${_srcname}"	
-	eval $(grep -o "^\(VERSION\|PATCHLEVEL\|SUBLEVEL\) = [0-9a-zA-Z_-]\+" Makefile | tr -d \ )
-	printf "%s.%s.%s+g%s" $VERSION $PATCHLEVEL $SUBLEVEL "$(git rev-parse --short HEAD)"
-}
+# pkgver() {
+# 	cd "${srcdir}/${_srcname}"	
+# 	eval $(grep -o "^\(VERSION\|PATCHLEVEL\|SUBLEVEL\) = [0-9a-zA-Z_-]\+" Makefile | tr -d \ )
+# 	printf "%s.%s.%s+g%s" $VERSION $PATCHLEVEL $SUBLEVEL "$(git rev-parse --short HEAD)"
+# }
 
 build() {
   cd ${_srcname}
   make KERNELRELEASE="$(<version)" all
+
+  if [ -z "${CROSS_COMPILE}" ]; then
+    # not cross compile, we can build this tool
+    make -C tools/bpf/bpftool vmlinux.h feature-clang-bpf-co-re=1
+  fi
 }
 
 _package() {
@@ -120,7 +176,11 @@ _package() {
     'raspberrypi-bootloader: bootloader for RPis'
   )
   provides=(
-    "WIREGUARD-MODULE"
+    KSMBD-MODULE
+    WIREGUARD-MODULE
+  )
+  replaces=(
+    wireguard-arch
   )
   install=${pkgname}.install
 
@@ -158,7 +218,7 @@ _package() {
 }
 
 _package-headers() {
-  pkgdesc="Header files and scripts for building modules for linux kernel - ${_desc}"
+  pkgdesc="Headers and scripts for building modules for the $pkgdesc kernel"
   depends=(pahole)
 
   cd $_srcname
@@ -167,9 +227,15 @@ _package-headers() {
   echo "Installing build files..."
   install -Dt "$builddir" -m644 .config Makefile Module.symvers System.map \
     localversion.* version vmlinux
+
+  # kernel post 6.8
+  install -Dt "$builddir" -m644 tools/bpf/bpftool/vmlinux.h
+
   install -Dt "$builddir/kernel" -m644 kernel/Makefile
   install -Dt "$builddir/arch/arm64" -m644 arch/arm64/Makefile
+  install -Dt "$builddir/arch/arm" -m644 arch/arm/Makefile
   cp -t "$builddir" -a scripts
+  ln -srt "$builddir" "$builddir/scripts/gdb/vmlinux-gdb.py"
 
   # required when STACK_VALIDATION is enabled
   # install -Dt "$builddir/tools/objtool" tools/objtool/objtool
@@ -181,8 +247,6 @@ _package-headers() {
   cp -t "$builddir" -a include
   cp -t "$builddir/arch/arm64" -a arch/arm64/include
   install -Dt "$builddir/arch/arm64/kernel" -m644 arch/arm64/kernel/asm-offsets.s
-  mkdir -p "$builddir/arch/arm"
-  cp -t "$builddir/arch/arm" -a arch/arm/include
 
   install -Dt "$builddir/drivers/md" -m644 drivers/md/*.h
   install -Dt "$builddir/net/mac80211" -m644 net/mac80211/*.h
@@ -204,6 +268,8 @@ _package-headers() {
   echo "Removing unneeded architectures..."
   local arch
   for arch in "$builddir"/arch/*/; do
+    # CHANGEME: when porting to other architectures
+    # eg. [[ $arch = */riscv/ ]] for riscv64
     [[ $arch = */arm64/ || $arch == */arm/ ]] && continue
     echo "Removing $(basename "$arch")"
     rm -r "$arch"

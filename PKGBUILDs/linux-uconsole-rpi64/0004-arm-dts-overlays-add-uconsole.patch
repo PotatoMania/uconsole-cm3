@@ -1,7 +1,7 @@
-From bc0666a53c949220cdc9308aa974a81ab9f3724b Mon Sep 17 00:00:00 2001
+From 645f81f129fda2b43050630251c8f5d293db06e4 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Fri, 20 Oct 2023 23:13:42 +0800
-Subject: [PATCH 4/7] arm: dts: overlays: add uconsole
+Subject: [PATCH 4/6] arm: dts: overlays: add uconsole
 
 This overlay uses customized software i2c, which has the address 3.
 BT serial speed is set to 1500000 to improve stability of both BT and WiFi.
@@ -18,10 +18,10 @@ hardware I2C, which is buggy on CM3, to control PMU.
  create mode 100644 arch/arm/boot/dts/overlays/uconsole-overlay.dts
 
 diff --git a/arch/arm/boot/dts/overlays/Makefile b/arch/arm/boot/dts/overlays/Makefile
-index 86e499122ca9..26485a78c634 100644
+index 77f3ecb1e2e7b..385b1ea460bd2 100644
 --- a/arch/arm/boot/dts/overlays/Makefile
 +++ b/arch/arm/boot/dts/overlays/Makefile
-@@ -293,6 +293,7 @@ dtbo-$(CONFIG_ARCH_BCM2835) += \
+@@ -320,6 +320,7 @@ dtbo-$(CONFIG_ARCH_BCM2835) += \
  	uart4.dtbo \
  	uart4-pi5.dtbo \
  	uart5.dtbo \
@@ -31,7 +31,7 @@ index 86e499122ca9..26485a78c634 100644
  	upstream.dtbo \
 diff --git a/arch/arm/boot/dts/overlays/uconsole-overlay.dts b/arch/arm/boot/dts/overlays/uconsole-overlay.dts
 new file mode 100644
-index 000000000000..ef52bd9ddceb
+index 0000000000000..ef52bd9ddceb2
 --- /dev/null
 +++ b/arch/arm/boot/dts/overlays/uconsole-overlay.dts
 @@ -0,0 +1,410 @@
@@ -446,5 +446,5 @@ index 000000000000..ef52bd9ddceb
 +	};
 +};
 -- 
-2.45.0
+2.51.0
 

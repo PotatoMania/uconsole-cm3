@@ -1,23 +1,23 @@
-From ef5e2567c4305929e596133c755b8e1b8e7a4aef Mon Sep 17 00:00:00 2001
+From 20026d65dd67bc3f49eb981f64beccdb70a4ce01 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Mon, 2 Oct 2023 15:14:09 +0800
-Subject: [PATCH 1/7] video: backlight: Add OCP8178 backlight driver
+Subject: [PATCH 1/6] video: backlight: Add OCP8178 backlight driver
 
 This driver is taken from
 https://github.com/clockworkpi/DevTerm/blob/main/Code/patch/armbian_build_a06/patch/kernel-005-backlight.patch
-and optimized for v6.5.
+and optimized for v6.12.
 ---
  drivers/video/backlight/Kconfig      |   6 +
  drivers/video/backlight/Makefile     |   1 +
- drivers/video/backlight/ocp8178_bl.c | 245 +++++++++++++++++++++++++++
- 3 files changed, 252 insertions(+)
+ drivers/video/backlight/ocp8178_bl.c | 243 +++++++++++++++++++++++++++
+ 3 files changed, 250 insertions(+)
  create mode 100644 drivers/video/backlight/ocp8178_bl.c
 
 diff --git a/drivers/video/backlight/Kconfig b/drivers/video/backlight/Kconfig
-index b4a61d00ba39..57d41fecd2c8 100644
+index d0951c7f375ac..2dcbdc641dc34 100644
 --- a/drivers/video/backlight/Kconfig
 +++ b/drivers/video/backlight/Kconfig
-@@ -479,6 +479,12 @@ config BACKLIGHT_LED
+@@ -497,6 +497,12 @@ config BACKLIGHT_LED
  	  If you have a LCD backlight adjustable by LED class driver, say Y
  	  to enable this driver.
  
@@ -31,20 +31,20 @@ index b4a61d00ba39..57d41fecd2c8 100644
  
  endmenu
 diff --git a/drivers/video/backlight/Makefile b/drivers/video/backlight/Makefile
-index e03cc5a394e5..3ab37bf12914 100644
+index 631227dfc1aab..cf92b73f5c77f 100644
 --- a/drivers/video/backlight/Makefile
 +++ b/drivers/video/backlight/Makefile
-@@ -59,3 +59,4 @@ obj-$(CONFIG_BACKLIGHT_WM831X)		+= wm831x_bl.o
+@@ -61,3 +61,4 @@ obj-$(CONFIG_BACKLIGHT_WM831X)		+= wm831x_bl.o
  obj-$(CONFIG_BACKLIGHT_ARCXCNN) 	+= arcxcnn_bl.o
  obj-$(CONFIG_BACKLIGHT_RAVE_SP)		+= rave-sp-backlight.o
  obj-$(CONFIG_BACKLIGHT_LED)		+= led_bl.o
 +obj-$(CONFIG_BACKLIGHT_OCP8178)		+= ocp8178_bl.o
 diff --git a/drivers/video/backlight/ocp8178_bl.c b/drivers/video/backlight/ocp8178_bl.c
 new file mode 100644
-index 000000000000..2b0d1b159500
+index 0000000000000..f2935c11b64b9
 --- /dev/null
 +++ b/drivers/video/backlight/ocp8178_bl.c
-@@ -0,0 +1,245 @@
+@@ -0,0 +1,243 @@
 +/*
 + * ocp8178_bl.c - ocp8178 backlight driver
 + *
@@ -163,9 +163,7 @@ index 000000000000..2b0d1b159500
 +	struct ocp8178_backlight *gbl = bl_get_data(bl);
 +	int brightness = bl->props.brightness, i;
 +
-+	if (bl->props.power != FB_BLANK_UNBLANK ||
-+	    bl->props.fb_blank != FB_BLANK_UNBLANK ||
-+	    bl->props.state & (BL_CORE_SUSPENDED | BL_CORE_FBBLANK))
++	if (backlight_is_blank(bl))
 +		brightness = 0;
 +
 +	if(brightness > MAX_BRIGHTNESS_VALUE)
@@ -186,18 +184,18 @@ index 000000000000..2b0d1b159500
 +	return gbl->current_value;
 +}
 +
-+static int ocp8178_check_fb(struct backlight_device *bl,
-+				   struct fb_info *info)
++static bool ocp8178_controls_device(struct backlight_device *bl,
++				   struct device *display_dev)
 +{
 +	struct ocp8178_backlight *gbl = bl_get_data(bl);
-+	return gbl->fbdev == NULL || gbl->fbdev == info->dev;
++	return gbl->fbdev == NULL || gbl->fbdev == display_dev;
 +}
 +
 +static const struct backlight_ops ocp8178_backlight_ops = {
-+	.options	= BL_CORE_SUSPENDRESUME,
-+	.update_status	= ocp8178_update_status,
-+	.get_brightness = ocp8178_get_brightness,
-+	.check_fb	= ocp8178_check_fb,
++	.options		= BL_CORE_SUSPENDRESUME,
++	.update_status		= ocp8178_update_status,
++	.get_brightness		= ocp8178_get_brightness,
++	.controls_device	= ocp8178_controls_device,
 +};
 +
 +static int ocp8178_probe_dt(struct platform_device *pdev,
@@ -291,5 +289,5 @@ index 000000000000..2b0d1b159500
 +MODULE_DESCRIPTION("OCP8178 Driver");
 +MODULE_LICENSE("GPL");
 -- 
-2.45.0
+2.51.0
 

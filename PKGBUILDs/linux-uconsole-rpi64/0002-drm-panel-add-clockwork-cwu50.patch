@@ -1,7 +1,7 @@
-From 1ec75b6cc01a82c250267efbc3bb7c4a2a220f87 Mon Sep 17 00:00:00 2001
+From 0fed7b2836a3af5e4960d4cfe1676708d7f97c64 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Fri, 20 Oct 2023 23:18:19 +0800
-Subject: [PATCH 2/7] drm: panel: add clockwork cwu50
+Subject: [PATCH 2/6] drm: panel: add clockwork cwu50
 
 - set `power_off_case` to 2(other than 1) to enable power off by
   DCS command
@@ -13,12 +13,12 @@ Subject: [PATCH 2/7] drm: panel: add clockwork cwu50
  create mode 100644 drivers/gpu/drm/panel/panel-clockwork-cwu50.c
 
 diff --git a/drivers/gpu/drm/panel/Kconfig b/drivers/gpu/drm/panel/Kconfig
-index d3109ea534fe..75c6b86581a1 100644
+index 928b9f1bf7d52..c55d6d12acfde 100644
 --- a/drivers/gpu/drm/panel/Kconfig
 +++ b/drivers/gpu/drm/panel/Kconfig
-@@ -76,6 +76,18 @@ config DRM_PANEL_BOE_TV101WUM_NL6
- 	  Say Y here if you want to support for BOE TV101WUM and AUO KD101N80
- 	  45NA WUXGA PANEL DSI Video Mode panel
+@@ -96,6 +96,18 @@ config DRM_PANEL_BOE_TV101WUM_LL2
+ 	  Say Y here if you want to support for BOE TV101WUM-LL2
+ 	  WUXGA PANEL DSI Video Mode panel
  
 +config DRM_PANEL_CLOCKWORK_CWU50
 +	tristate "Clockwork CWU50 panel"
@@ -32,16 +32,16 @@ index d3109ea534fe..75c6b86581a1 100644
 +
 +	  To compile this driver as a module, choose M here.
 +
- config DRM_PANEL_DSI_CM
- 	tristate "Generic DSI command mode panels"
+ config DRM_PANEL_EBBG_FT8719
+ 	tristate "EBBG FT8719 panel driver"
  	depends on OF
 diff --git a/drivers/gpu/drm/panel/Makefile b/drivers/gpu/drm/panel/Makefile
-index 9dd9b3503802..549180da3e81 100644
+index c13a08111d0c2..eaf9e2e6a9c19 100644
 --- a/drivers/gpu/drm/panel/Makefile
 +++ b/drivers/gpu/drm/panel/Makefile
-@@ -6,6 +6,7 @@ obj-$(CONFIG_DRM_PANEL_AUO_A030JTN01) += panel-auo-a030jtn01.o
- obj-$(CONFIG_DRM_PANEL_BOE_BF060Y8M_AJ0) += panel-boe-bf060y8m-aj0.o
- obj-$(CONFIG_DRM_PANEL_BOE_HIMAX8279D) += panel-boe-himax8279d.o
+@@ -8,6 +8,7 @@ obj-$(CONFIG_DRM_PANEL_BOE_HIMAX8279D) += panel-boe-himax8279d.o
+ obj-$(CONFIG_DRM_PANEL_BOE_TH101MB31UIG002_28A) += panel-boe-th101mb31ig002-28a.o
+ obj-$(CONFIG_DRM_PANEL_BOE_TV101WUM_LL2) += panel-boe-tv101wum-ll2.o
  obj-$(CONFIG_DRM_PANEL_BOE_TV101WUM_NL6) += panel-boe-tv101wum-nl6.o
 +obj-$(CONFIG_DRM_PANEL_CLOCKWORK_CWU50) += panel-clockwork-cwu50.o
  obj-$(CONFIG_DRM_PANEL_DSI_CM) += panel-dsi-cm.o
@@ -49,7 +49,7 @@ index 9dd9b3503802..549180da3e81 100644
  obj-$(CONFIG_DRM_PANEL_SIMPLE) += panel-simple.o
 diff --git a/drivers/gpu/drm/panel/panel-clockwork-cwu50.c b/drivers/gpu/drm/panel/panel-clockwork-cwu50.c
 new file mode 100644
-index 000000000000..aef3f587a1f1
+index 0000000000000..aef3f587a1f11
 --- /dev/null
 +++ b/drivers/gpu/drm/panel/panel-clockwork-cwu50.c
 @@ -0,0 +1,558 @@
@@ -612,5 +612,5 @@ index 000000000000..aef3f587a1f1
 +MODULE_DESCRIPTION("ClockworkPi CWU50 panel driver");
 +MODULE_LICENSE("GPL v2");
 -- 
-2.45.0
+2.51.0
 
