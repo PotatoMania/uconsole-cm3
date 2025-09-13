@@ -2,14 +2,14 @@
 # Maintainer: PotatoMania <nikko@faint.day>
 
 pkgbase=linux-uconsole-rpi64
-pkgver=6.12.y
+pkgver=6.16.y
 # _majorversion=${pkgver%.*}
 # _subversion=${pkgver##*.}
 # _srcname=linux-${_majorversion}
 _desc="uConsole(CM3) kernel package using RPi's fork"
 
 _srcname=linux
-_srcbranch="rpi-6.12.y"
+_srcbranch="rpi-6.16.y"
 _repourl="git+https://github.com/raspberrypi/linux.git#branch=${_srcbranch}"
 
 pkgrel=1
@@ -43,12 +43,12 @@ source=("${_srcname}::${_repourl}"
 )
 b2sums=('SKIP'
         'bf23fa8846d66d358d5bc4f25719dc5adea4cd43837e1c9eb0ff292c03c83951bf02363e8bbf96bbee3fa618d9b8b92a6ff27c65319186ff08677f1d4d74c128'
-        '18b4c1e66b30240058504dfc2fb94a14290b1baf20bb954fc0944818353c859d2b904893ab278700fd7c624710ed7fd4d6af0c679d31f93921ba64b2db8505c9'
-        '0fd73a3dcecda8b6a7a9a3ff5805d998a2f90fd618df140f26c659250dfce70dabc811d82c7712156a3d4e6855ea5df428fe2965e02420aed717a67f282898a1'
-        'df569d2289398cd8b732b46c322ced75cef01eb132a0f40517404b5329a5ceadf0bc98dd805ba2c5d77894a2be351c4ddf819eef843eb646066f3caf1924fcf0'
-        '2f9d92e97271dfea6abe313d64fab49b166375a29b07845d7b1b08603e0ef9e6df5cdcbe6d9d9a694679e515f895eb0414c1f146eaaf73f66ad6aad0350f0da6'
-        '0a261125e38cd055af884a0d56ad45e1971f3bfcd74ee44ac40fd013839b60df6e1ab1aff0efaf6fa5d767f2ccadec926e5ac3ba99079e3dcc03d500447acddb'
-        'e9c03a18cd9c40242e965d8b1408eda98eeb13e86e45be91a8fc2b6381f58da0c873bacab5bc698fd7f5e64b9391bc375938a716dc7a1097c17a66d0ffb298a3')
+        '68f006477f72116d3fe3f8fe8bcee61a344afaa89a48d2fbac30827f8252059162e2d609680e1c069d149bcf0b7a98f409ba4987c598d88ea153a5c2cd10616d'
+        'd3c294ac99030d8b9958286c12b6e13bccf8a69cb997d8a0ae4f9c1aa643ea710855c847918ac22c66c3e6705180591157b2a9d84af88d04406365a85eff27fa'
+        'e30453c4da59bf11e3c134351d4397d22c386c90f3cddec63506a31403ffcecc1aa22c2bda26b7852605d664118e374826537e79009086ddc27ef4b6214da3f5'
+        '9bd849ce519f536b7aabb40c5d4c846ce6856efa682c1d61b7b6687f33c037d44055b268a8788736a0d631b1b727b0b300a895cf670d531b806f68170ccd1d01'
+        'b6e03ffc367d478e5bbe348cf7c0ea8a1372f622ff0f4b91604dca1a3500ca35f0795a067b5e30fd773ce1df41f5141f1f48bfc4665f83a3515c21a57d790219'
+        'cbb88f318237d92cd008521333847b5c2c64ad3810eb805b573333b0098ebd896f194bd02ea26053d589606b721f9148700b44a6a057fc1332f35ded5f8c9a08')
 
 
 
@@ -137,6 +137,12 @@ prepare() {
   _kcfg DEBUG_INFO_DWARF5 y
   _kcfg DEBUG_INFO_BTF y
   _kcfg DEBUG_INFO_BTF_MODULES y
+  _kcfg SCHED_CLASS_EXT y
+  _kcfg BPF_JIT y
+  _kcfg BPF_JIT_ALWAYS_ON y
+  _kcfg BPF_JIT_DEFAULT_ON y
+  _kcfg PAHOLE_HAS_SPLIT_BTF y
+  _kcfg PAHOLE_HAS_BTF_TAG y
 
   # make sure it's valid
   make KERNELRELEASE="$(<version)" olddefconfig
@@ -174,6 +180,7 @@ _package() {
     'brcmfmac43456-firmware: firmware for on board WiFi'
     'ap6256-firmware: WiFi&BT firmware, replaces brcmfmac43456-firmware and firmware-raspberrypi on uConsole'
     'raspberrypi-bootloader: bootloader for RPis'
+    'scx-scheds: to use sched-ext schedulers'
   )
   provides=(
     KSMBD-MODULE
@@ -241,7 +248,9 @@ _package-headers() {
   # install -Dt "$builddir/tools/objtool" tools/objtool/objtool
 
   # required when DEBUG_INFO_BTF_MODULES is enabled
-  # install -Dt "$builddir/tools/bpf/resolve_btfids" tools/bpf/resolve_btfids/resolve_btfids
+  if grep "DEBUG_INFO_BTF_MODULES=y" .config; then
+    install -Dt "$builddir/tools/bpf/resolve_btfids" tools/bpf/resolve_btfids/resolve_btfids
+  fi
 
   echo "Installing headers..."
   cp -t "$builddir" -a include

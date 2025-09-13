@@ -1,4 +1,4 @@
-From 0fed7b2836a3af5e4960d4cfe1676708d7f97c64 Mon Sep 17 00:00:00 2001
+From 8c8657a767c25aae60a0e0d3202bbbea0bcedd09 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Fri, 20 Oct 2023 23:18:19 +0800
 Subject: [PATCH 2/6] drm: panel: add clockwork cwu50
@@ -13,10 +13,10 @@ Subject: [PATCH 2/6] drm: panel: add clockwork cwu50
  create mode 100644 drivers/gpu/drm/panel/panel-clockwork-cwu50.c
 
 diff --git a/drivers/gpu/drm/panel/Kconfig b/drivers/gpu/drm/panel/Kconfig
-index 928b9f1bf7d52..c55d6d12acfde 100644
+index 3b276b483c5f..2368e7e3b409 100644
 --- a/drivers/gpu/drm/panel/Kconfig
 +++ b/drivers/gpu/drm/panel/Kconfig
-@@ -96,6 +96,18 @@ config DRM_PANEL_BOE_TV101WUM_LL2
+@@ -105,6 +105,18 @@ config DRM_PANEL_BOE_TV101WUM_LL2
  	  Say Y here if you want to support for BOE TV101WUM-LL2
  	  WUXGA PANEL DSI Video Mode panel
  
@@ -36,10 +36,10 @@ index 928b9f1bf7d52..c55d6d12acfde 100644
  	tristate "EBBG FT8719 panel driver"
  	depends on OF
 diff --git a/drivers/gpu/drm/panel/Makefile b/drivers/gpu/drm/panel/Makefile
-index c13a08111d0c2..eaf9e2e6a9c19 100644
+index f26e0517f981..9dbe80774530 100644
 --- a/drivers/gpu/drm/panel/Makefile
 +++ b/drivers/gpu/drm/panel/Makefile
-@@ -8,6 +8,7 @@ obj-$(CONFIG_DRM_PANEL_BOE_HIMAX8279D) += panel-boe-himax8279d.o
+@@ -9,6 +9,7 @@ obj-$(CONFIG_DRM_PANEL_BOE_TD4320) += panel-boe-td4320.o
  obj-$(CONFIG_DRM_PANEL_BOE_TH101MB31UIG002_28A) += panel-boe-th101mb31ig002-28a.o
  obj-$(CONFIG_DRM_PANEL_BOE_TV101WUM_LL2) += panel-boe-tv101wum-ll2.o
  obj-$(CONFIG_DRM_PANEL_BOE_TV101WUM_NL6) += panel-boe-tv101wum-nl6.o
@@ -49,7 +49,7 @@ index c13a08111d0c2..eaf9e2e6a9c19 100644
  obj-$(CONFIG_DRM_PANEL_SIMPLE) += panel-simple.o
 diff --git a/drivers/gpu/drm/panel/panel-clockwork-cwu50.c b/drivers/gpu/drm/panel/panel-clockwork-cwu50.c
 new file mode 100644
-index 0000000000000..aef3f587a1f11
+index 000000000000..aef3f587a1f1
 --- /dev/null
 +++ b/drivers/gpu/drm/panel/panel-clockwork-cwu50.c
 @@ -0,0 +1,558 @@

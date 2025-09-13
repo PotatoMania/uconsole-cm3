@@ -1,4 +1,4 @@
-From 839232cbd2e7a85067e1702c99290ccea99176f8 Mon Sep 17 00:00:00 2001
+From 5ebb8e0cd72872ea3f691021332793ff669491a8 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Fri, 13 Oct 2023 11:08:40 +0800
 Subject: [PATCH 3/6] driver: staging: add uconsole simple amplifier switch
@@ -15,31 +15,28 @@ Subject: [PATCH 3/6] driver: staging: add uconsole simple amplifier switch
  create mode 100644 drivers/staging/uconsole/simple-amplifier-switch.c
 
 diff --git a/drivers/staging/Kconfig b/drivers/staging/Kconfig
-index 3fb68d60dfc1b..d1a668f6f995a 100644
+index 075e775d3868..f5ff50f057db 100644
 --- a/drivers/staging/Kconfig
 +++ b/drivers/staging/Kconfig
-@@ -64,4 +64,6 @@ source "drivers/staging/fieldbus/Kconfig"
+@@ -50,4 +50,6 @@ source "drivers/staging/vme_user/Kconfig"
  
- source "drivers/staging/vme_user/Kconfig"
+ source "drivers/staging/gpib/Kconfig"
  
 +source "drivers/staging/uconsole/Kconfig"
 +
  endif # STAGING
 diff --git a/drivers/staging/Makefile b/drivers/staging/Makefile
-index c977aa13fad40..8819273bb68ac 100644
+index e681e403509c..022d292ac91d 100644
 --- a/drivers/staging/Makefile
 +++ b/drivers/staging/Makefile
-@@ -2,6 +2,7 @@
- # Makefile for staging directory
- 
- obj-y				+= media/
+@@ -14,3 +14,4 @@ obj-$(CONFIG_GREYBUS)		+= greybus/
+ obj-$(CONFIG_BCM2835_VCHIQ)	+= vc04_services/
+ obj-$(CONFIG_XIL_AXIS_FIFO)	+= axis-fifo/
+ obj-$(CONFIG_GPIB)	 	+= gpib/
 +obj-y				+= uconsole/
- obj-$(CONFIG_FB_OLPC_DCON)	+= olpc_dcon/
- obj-$(CONFIG_RTL8192E)		+= rtl8192e/
- obj-$(CONFIG_RTL8723BS)		+= rtl8723bs/
 diff --git a/drivers/staging/uconsole/Kconfig b/drivers/staging/uconsole/Kconfig
 new file mode 100644
-index 0000000000000..303e2e26a0b11
+index 000000000000..303e2e26a0b1
 --- /dev/null
 +++ b/drivers/staging/uconsole/Kconfig
 @@ -0,0 +1,10 @@
@@ -55,14 +52,14 @@ index 0000000000000..303e2e26a0b11
 +        detect pin on uConsole.
 diff --git a/drivers/staging/uconsole/Makefile b/drivers/staging/uconsole/Makefile
 new file mode 100644
-index 0000000000000..8f3239c1f36c4
+index 000000000000..8f3239c1f36c
 --- /dev/null
 +++ b/drivers/staging/uconsole/Makefile
 @@ -0,0 +1 @@
 +obj-$(CONFIG_SIMPLE_AMPLIFIER_SWITCH)	+= simple-amplifier-switch.o
 diff --git a/drivers/staging/uconsole/simple-amplifier-switch.c b/drivers/staging/uconsole/simple-amplifier-switch.c
 new file mode 100644
-index 0000000000000..2471e035c2131
+index 000000000000..2471e035c213
 --- /dev/null
 +++ b/drivers/staging/uconsole/simple-amplifier-switch.c
 @@ -0,0 +1,131 @@

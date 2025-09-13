@@ -1,4 +1,4 @@
-From 1d706d0462c8ae4415362a5983d26477fd15bd09 Mon Sep 17 00:00:00 2001
+From 22287431282f69fbe9cfa3f12e6fa74ed7ef4273 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Wed, 13 Dec 2023 13:32:33 +0800
 Subject: [PATCH 6/6] drm: panel: cwu50: expose dsi error status to userspace
@@ -9,7 +9,7 @@ Subject: [PATCH 6/6] drm: panel: cwu50: expose dsi error status to userspace
  1 file changed, 41 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/panel/panel-clockwork-cwu50.c b/drivers/gpu/drm/panel/panel-clockwork-cwu50.c
-index aef3f587a1f11..f3f689d1e0e3c 100644
+index aef3f587a1f1..f3f689d1e0e3 100644
 --- a/drivers/gpu/drm/panel/panel-clockwork-cwu50.c
 +++ b/drivers/gpu/drm/panel/panel-clockwork-cwu50.c
 @@ -26,6 +26,31 @@ struct cwu50 {

@@ -1,4 +1,4 @@
-From 20026d65dd67bc3f49eb981f64beccdb70a4ce01 Mon Sep 17 00:00:00 2001
+From 613fa9571e82fc7d1885c4feed1e9b241441f494 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Mon, 2 Oct 2023 15:14:09 +0800
 Subject: [PATCH 1/6] video: backlight: Add OCP8178 backlight driver
@@ -14,10 +14,10 @@ and optimized for v6.12.
  create mode 100644 drivers/video/backlight/ocp8178_bl.c
 
 diff --git a/drivers/video/backlight/Kconfig b/drivers/video/backlight/Kconfig
-index d0951c7f375ac..2dcbdc641dc34 100644
+index 7b836f9adf91..d0d3d543fbe6 100644
 --- a/drivers/video/backlight/Kconfig
 +++ b/drivers/video/backlight/Kconfig
-@@ -497,6 +497,12 @@ config BACKLIGHT_LED
+@@ -501,6 +501,12 @@ config BACKLIGHT_LED
  	  If you have a LCD backlight adjustable by LED class driver, say Y
  	  to enable this driver.
  
@@ -31,7 +31,7 @@ index d0951c7f375ac..2dcbdc641dc34 100644
  
  endmenu
 diff --git a/drivers/video/backlight/Makefile b/drivers/video/backlight/Makefile
-index 631227dfc1aab..cf92b73f5c77f 100644
+index bcb568afe5d4..b4e1e60578ea 100644
 --- a/drivers/video/backlight/Makefile
 +++ b/drivers/video/backlight/Makefile
 @@ -61,3 +61,4 @@ obj-$(CONFIG_BACKLIGHT_WM831X)		+= wm831x_bl.o
@@ -41,7 +41,7 @@ index 631227dfc1aab..cf92b73f5c77f 100644
 +obj-$(CONFIG_BACKLIGHT_OCP8178)		+= ocp8178_bl.o
 diff --git a/drivers/video/backlight/ocp8178_bl.c b/drivers/video/backlight/ocp8178_bl.c
 new file mode 100644
-index 0000000000000..f2935c11b64b9
+index 000000000000..f2935c11b64b
 --- /dev/null
 +++ b/drivers/video/backlight/ocp8178_bl.c
 @@ -0,0 +1,243 @@

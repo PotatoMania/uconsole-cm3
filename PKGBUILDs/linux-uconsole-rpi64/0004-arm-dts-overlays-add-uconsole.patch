@@ -1,4 +1,4 @@
-From 645f81f129fda2b43050630251c8f5d293db06e4 Mon Sep 17 00:00:00 2001
+From 1025231fd60d306485f12bcb9f497a5c27e0c567 Mon Sep 17 00:00:00 2001
 From: Potato <nikko@faint.day>
 Date: Fri, 20 Oct 2023 23:13:42 +0800
 Subject: [PATCH 4/6] arm: dts: overlays: add uconsole
@@ -18,7 +18,7 @@ hardware I2C, which is buggy on CM3, to control PMU.
  create mode 100644 arch/arm/boot/dts/overlays/uconsole-overlay.dts
 
 diff --git a/arch/arm/boot/dts/overlays/Makefile b/arch/arm/boot/dts/overlays/Makefile
-index 77f3ecb1e2e7b..385b1ea460bd2 100644
+index 77f3ecb1e2e7..385b1ea460bd 100644
 --- a/arch/arm/boot/dts/overlays/Makefile
 +++ b/arch/arm/boot/dts/overlays/Makefile
 @@ -320,6 +320,7 @@ dtbo-$(CONFIG_ARCH_BCM2835) += \
@@ -31,7 +31,7 @@ index 77f3ecb1e2e7b..385b1ea460bd2 100644
  	upstream.dtbo \
 diff --git a/arch/arm/boot/dts/overlays/uconsole-overlay.dts b/arch/arm/boot/dts/overlays/uconsole-overlay.dts
 new file mode 100644
-index 0000000000000..ef52bd9ddceb2
+index 000000000000..ef52bd9ddceb
 --- /dev/null
 +++ b/arch/arm/boot/dts/overlays/uconsole-overlay.dts
 @@ -0,0 +1,410 @@
